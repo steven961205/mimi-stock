@@ -96,6 +96,22 @@
         .price-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent-green);animation:pulse-dot 2s infinite;margin-right:4px;}
         @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
         ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:3px;}
+        /* ── 持倉圓餅圖 ── */
+        .holding-pie-wrap{margin:14px 0 16px;padding:14px;background:rgba(10,22,40,.5);border:1px solid var(--border);border-radius:10px;}
+        .holding-pie-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+        .holding-pie-title{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;}
+        .holding-pie-cash{font-size:10px;color:var(--text-secondary);}
+        .holding-pie-body{display:flex;align-items:center;gap:14px;}
+        .holding-pie-canvas-wrap{position:relative;width:130px;height:130px;flex-shrink:0;}
+        .holding-pie-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+        .holding-pie-center-num{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;color:var(--text-primary);line-height:1;}
+        .holding-pie-center-lbl{font-size:10px;color:var(--text-muted);margin-top:4px;letter-spacing:.05em;}
+        .holding-pie-legend{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0;}
+        .holding-pie-legend-row{display:flex;align-items:center;gap:8px;font-size:12px;min-width:0;}
+        .holding-pie-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+        .holding-pie-ticker{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text-primary);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
+        .holding-pie-pct{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--text-secondary);font-size:12px;flex-shrink:0;}
+        .holding-pie-empty{padding:20px;text-align:center;color:var(--text-muted);font-size:12px;}
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -276,6 +292,8 @@ let dailySnapshots={};       // {0:{date:{netValue,currency,initCap,ts}},...}
 let benchmarkHistory={ sp500:[], twii:[] }; // [{date,close},...]
 let performanceChart=null;
 let chartRenderTimer=null;
+let holdingPieCharts={}; // {playerName: Chart instance}
+const HOLDING_PIE_COLORS = ['#3b82f6','#06b6d4','#f59e0b','#10b981','#a855f7','#ec4899','#fbbf24','#ef4444','#84cc16','#8b5cf6','#22d3ee','#f97316','#14b8a6','#e11d48','#0ea5e9','#facc15','#d946ef','#65a30d','#06b6d4','#fb7185'];
 
 // ─── 多筆入金 (Deposits) helper 函式 ───────────────────
 // 取得排序後的入金清單;向後相容處理舊版單筆 initCap+initCapDate
@@ -324,19 +342,20 @@ function getFixedInitialCapital(c){ return c==='USD' ? 3161.5 : 100000; }
 // ─── TWR (Time-Weighted Return) 計算 ───────────────
 // 對輸入的日期序列 allDates,回傳「累積 TWR %」陣列
 // 計算邏輯:
-//   1. 每日 NAV(d) = 累積入金(d) + 累積已實現損益(d) [+ 今日: 未實現損益]
+//   1. 每日 NAV(d) = 累積入金(d) + 累積已實現損益(d) [+ 最後交易日: 未實現損益]
 //   2. 每日入金前淨值 = NAV(d) - CF(d)
 //   3. 子期間 r(d) = NAV_before_CF(d) / NAV(d-1) - 1
 //   4. 累積 TWR(d) = ∏ (1 + r(t)) - 1
 // 第一筆入金日當天 return = 0% (剛入金,尚未產生績效)
 // 第一筆入金日之前的日期 → 回傳 null (圖上會斷開)
-function calculateTWRSeries(p, allDates, todayStr){
+// 第三個參數 lastTradingDayStr = 最後一個交易日(平日=今天, 週末=最近的週五),用來判斷是否加未實現損益
+function calculateTWRSeries(p, allDates, lastTradingDayStr){
     const trades = (Array.isArray(p.trades)?p.trades:[])
         .map(t => ({date: normalizeDate(t.date||''), pnl: parseFloat(t.pnl)||0}))
         .filter(t => t.date)
         .sort((a,b) => a.date.localeCompare(b.date));
 
-    // 當前未實現損益 (僅用於今日端點)
+    // 當前未實現損益 (僅用於最後交易日端點)
     const stocks = Array.isArray(p.stocks)?p.stocks:[];
     let unrealizedPnl = 0;
     stocks.forEach(s => {
@@ -365,8 +384,8 @@ function calculateTWRSeries(p, allDates, todayStr){
         const cumDep = getCumulativeDeposit(p, date);
         if(cumDep <= 0) return null;
 
-        const isToday = (date === todayStr);
-        const navAfter  = cumDep + cumPnl + (isToday ? unrealizedPnl : 0);
+        const isLastPoint = (date === lastTradingDayStr);
+        const navAfter  = cumDep + cumPnl + (isLastPoint ? unrealizedPnl : 0);
         const cfToday   = getDepositOnDate(p, date);
         const navBefore = navAfter - cfToday;  // 入金前淨值
 
@@ -871,9 +890,13 @@ function renderPerformanceChart(){
         const [, m, d] = date.split('-');
         return `${parseInt(m,10)}/${parseInt(d,10)}`;
     });
+    // 「最後一個交易日」端點 — 平日=今天, 週末=最近的週五
+    // 用這個取代原本的 todayStr 來判斷是否加未實現損益,避免週末曲線少一截
+    const lastTradingDayStr = allDates.length ? allDates[allDates.length - 1] : todayStr;
+    const isTodayWeekend = (lastTradingDayStr !== todayStr);
 
     // 2. 參賽者 datasets — 使用 TWR (時間加權報酬) 計算
-    //    每日 NAV = 累積入金(d) + 累積已實現損益(d) [+ 今日: 未實現]
+    //    每日 NAV = 累積入金(d) + 累積已實現損益(d) [+ 最後交易日: 未實現]
     //    子期間 r = (NAV_today - 今日入金) / NAV_yesterday - 1
     //    累積 TWR = ∏(1+r) - 1 → 加碼動作完全不影響曲線
     const playerColors = ['#a855f7', '#ffffff', '#fbbf24', '#06b6d4', '#ec4899'];
@@ -881,7 +904,7 @@ function renderPerformanceChart(){
     participants.forEach((p, idx)=>{
         // ── 使用 TWR (Time-Weighted Return) 計算曲線 ──
         // 加碼/減碼不影響曲線連續性,純粹反映選股技巧
-        const data = calculateTWRSeries(p, allDates, todayStr);
+        const data = calculateTWRSeries(p, allDates, lastTradingDayStr);
 
         const color = playerColors[idx % playerColors.length];
         datasets.push({
@@ -970,8 +993,11 @@ function renderPerformanceChart(){
                                 const i = items[0].dataIndex;
                                 const date = allDates[i];
                                 if(!date) return '';
-                                const isToday = (date === todayStr);
-                                return isToday ? `${date}（今日・含未實現）` : date;
+                                const isLastPoint = (date === lastTradingDayStr);
+                                if(isLastPoint){
+                                    return isTodayWeekend ? `${date}（最新・含未實現・週末）` : `${date}（今日・含未實現）`;
+                                }
+                                return date;
                             },
                             label: function(c){
                                 const v = c.parsed.y;
@@ -1010,7 +1036,8 @@ function renderPerformanceChart(){
     if(statusEl){
         const totalTrades = participants.reduce((sum,p)=> sum + (Array.isArray(p.trades)?p.trades.length:0), 0);
         const totalBmDays = (benchmarkHistory.sp500?.length||0) + (benchmarkHistory.twii?.length||0);
-        statusEl.innerHTML = `📅 ${allDates.length} 個交易日｜📊 共 ${totalTrades} 筆歷史交易疊加｜大盤收盤資料 ${totalBmDays} 筆<br><span style="color:var(--text-muted);">曲線=TWR 時間加權累積%，加碼/減碼不影響曲線（純技巧表現）</span>`;
+        const weekendHint = isTodayWeekend ? `｜<span style="color:var(--accent-amber);">📅 今日週末・最新端點=${lastTradingDayStr}（含未實現）</span>` : '';
+        statusEl.innerHTML = `📅 ${allDates.length} 個交易日｜📊 共 ${totalTrades} 筆歷史交易疊加｜大盤收盤資料 ${totalBmDays} 筆${weekendHint}<br><span style="color:var(--text-muted);">曲線=TWR 時間加權累積%，加碼/減碼不影響曲線（純技巧表現）</span>`;
     }
 }
 
@@ -1019,6 +1046,63 @@ db.ref('dailySnapshotsV2').on('value', snap=>{
     dailySnapshots = snap.val() || {};
     scheduleChartRender();
 });
+
+// ── 渲染單一玩家持倉圓餅圖 ───────────────
+// sliceData = [{ticker, mv, color}]  含現金 slice
+function renderHoldingPie(playerName, sliceData){
+    const canvasId = `pie-${playerName}`;
+    const canvas = document.getElementById(canvasId);
+    if(!canvas || typeof Chart === 'undefined') return;
+    const ctx = canvas.getContext('2d');
+
+    // 銷毀舊 instance(每次 dashboard 重繪)
+    if(holdingPieCharts[playerName]){
+        try{ holdingPieCharts[playerName].destroy(); }catch(e){}
+        delete holdingPieCharts[playerName];
+    }
+
+    const labels = sliceData.map(s=>s.ticker);
+    const dataArr = sliceData.map(s=>s.mv);
+    const colors = sliceData.map(s=>s.color);
+
+    holdingPieCharts[playerName] = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data: dataArr,
+                backgroundColor: colors,
+                borderColor: 'rgba(13,23,38,1)',
+                borderWidth: 2,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            animation: { duration: 500 },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(13,23,38,.96)',
+                    borderColor: '#2a5490',
+                    borderWidth: 1,
+                    titleColor: '#e8f4fd',
+                    bodyColor: '#e8f4fd',
+                    padding: 10,
+                    callbacks: {
+                        label: function(c){
+                            const total = c.dataset.data.reduce((a,b)=>a+b,0);
+                            const pct = total>0 ? (c.parsed/total*100).toFixed(1) : '0.0';
+                            return `${c.label}: ${pct}%`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
 
 async function searchTickers(query){
     if(!query)return[];
@@ -1253,6 +1337,67 @@ function renderDashboard(){
 
         const realSign=realPnl>=0?'+':'-';const realCls=realPnl>=0?'profit-pos':'profit-neg';
         const upSign=totalUnPnl>=0?'+':'-';const upCls=totalUnPnl<0?'text-red-400':'text-emerald-400';
+
+        // ── 持倉圓餅圖資料 (依 totalMV 排序大→小，含現金 slice) ──
+        // sliceData = [{ticker, mv, color}]，圖例只顯示前 6 大持股(其餘合併為「其他」)
+        let pieHTML = '';
+        if(stocks.length > 0){
+            const stockSlices = stocks.map(s=>{
+                const sess=s.session||'';
+                const lp=(sess==='🌙 夜盤'&&s.prePrice)?s.prePrice:
+                         (sess==='🌆 盤後'&&s.postPrice)?s.postPrice:
+                         s.currentPrice||0;
+                const sCur=s.currency||p.currency;
+                const mvRaw=(s.shares||0)*lp;
+                return { ticker: s.ticker||'--', mv: Math.max(0, convertCurrency(mvRaw, sCur, p.currency)) };
+            }).filter(x=>x.mv>0).sort((a,b)=>b.mv-a.mv);
+
+            // 現金 slice (持有現金 autoCash; 若為負數=融資, 不顯示為 slice)
+            const cashMV = Math.max(0, autoCash);
+            const pieSlices = [...stockSlices];
+            if(cashMV > 0) pieSlices.push({ticker:'💵 現金', mv:cashMV, isCash:true});
+
+            // 著色
+            pieSlices.forEach((s,i)=>{
+                s.color = s.isCash ? '#475569' : HOLDING_PIE_COLORS[i % HOLDING_PIE_COLORS.length];
+            });
+
+            const totalPieMV = pieSlices.reduce((sum,s)=>sum+s.mv,0);
+            const totalAssetVal = totalPieMV; // 顯示在中心
+            const legendItems = pieSlices.slice(0, 6); // 圖例最多 6 項
+            const otherCount = pieSlices.length - legendItems.length;
+
+            const legendHTML = legendItems.map(s=>{
+                const pct = totalPieMV>0 ? (s.mv/totalPieMV*100).toFixed(1) : '0.0';
+                return `<div class="holding-pie-legend-row">
+                    <span class="holding-pie-dot" style="background:${s.color};"></span>
+                    <span class="holding-pie-ticker" title="${s.ticker}">${s.ticker}</span>
+                    <span class="holding-pie-pct">${pct}%</span>
+                </div>`;
+            }).join('') + (otherCount>0?`<div class="holding-pie-legend-row" style="color:var(--text-muted);font-size:11px;">＋ 其他 ${otherCount} 項</div>`:'');
+
+            pieHTML = `<div class="holding-pie-wrap">
+                <div class="holding-pie-header">
+                    <span class="holding-pie-title">📊 資產配置</span>
+                    <span class="holding-pie-cash">總資產 ${fmtRaw(totalAssetVal, p.currency)}</span>
+                </div>
+                <div class="holding-pie-body">
+                    <div class="holding-pie-canvas-wrap">
+                        <canvas id="pie-${p.name}"></canvas>
+                        <div class="holding-pie-center">
+                            <div class="holding-pie-center-num">${stocks.length}</div>
+                            <div class="holding-pie-center-lbl">檔持股</div>
+                        </div>
+                    </div>
+                    <div class="holding-pie-legend">${legendHTML}</div>
+                </div>
+            </div>`;
+            // 把 sliceData 暫存到玩家物件,渲染完 DOM 後再實際畫圖
+            p._pieSliceData = pieSlices;
+        } else {
+            pieHTML = `<div class="holding-pie-wrap"><div class="holding-pie-empty">📊 尚無持股 — 全部為現金部位</div></div>`;
+            p._pieSliceData = null;
+        }
         
         // ── 歷史交易：按日期新→舊排序 + 分頁 ──
         const sortedTrades = trades.map((t,i)=>({...t, origIdx:i})).sort((a,b)=>{
@@ -1367,6 +1512,7 @@ function renderDashboard(){
                 
                 <div class="stat-row" style="margin-top:4px; padding-top:4px; border-top:1px solid rgba(30,58,95,.4);"><span class="stat-label">交易成本 <span style="color:var(--text-muted);font-size:10px;">(手續費+證交稅+利息)</span></span><span class="mono text-slate-400">${totalFeeTax > 0 ? '-' : ''}${fmtRaw(totalFeeTax, p.currency)}</span></div>
             </div>
+            ${pieHTML}
             <h4 style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">當前持倉（${stocks.length}/${MAX_STOCKS}）</h4>
             ${holdHTML}
             <div class="history-section">
@@ -1404,6 +1550,16 @@ function renderDashboard(){
     });
     // 同時刷新大盤對照
     renderBenchmarks();
+
+    // DOM 已經寫入,渲染各玩家持倉圓餅圖
+    // requestAnimationFrame 等下一幀,確保 canvas 已掛在 document 上
+    requestAnimationFrame(()=>{
+        participants.forEach(p=>{
+            if(p._pieSliceData && p._pieSliceData.length){
+                renderHoldingPie(p.name, p._pieSliceData);
+            }
+        });
+    });
 }
 
 // ── 持倉 Modal ────────────────────────────
