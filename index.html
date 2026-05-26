@@ -832,8 +832,14 @@ function calcCurrentNetValue(p){
 }
 
 // ── 取得台北時間「今日」(YYYY-MM-DD) ──────
+// 交易日視窗:早上 09:00 → 隔日凌晨 04:00
+// 凌晨 00:00–08:59(含 04:00–09:00 結算後空檔)仍視為「前一個交易日」
 function getTaipeiToday(){
     const tw = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
+    // 09:00 之前回推一天,讓「今日」對齊 09:00 開始的交易日
+    if(tw.getHours() < 9){
+        tw.setDate(tw.getDate() - 1);
+    }
     const y=tw.getFullYear(), m=String(tw.getMonth()+1).padStart(2,'0'), d=String(tw.getDate()).padStart(2,'0');
     return `${y}-${m}-${d}`;
 }
