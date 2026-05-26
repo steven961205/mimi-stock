@@ -85,6 +85,18 @@
         .divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
         .stock-slot{background:rgba(10,10,12,.7);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;}
         .stock-slot-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+        /* ── 入金紀錄區塊 ── */
+        .deposits-box{background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.18);border-radius:10px;padding:14px;margin-bottom:14px;}
+        .deposits-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+        .deposits-title{font-size:11px;font-weight:700;color:var(--accent-amber);letter-spacing:.05em;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+        .deposit-row{display:grid;grid-template-columns:140px 1fr 32px;gap:8px;align-items:center;margin-bottom:6px;}
+        .deposit-row:last-child{margin-bottom:0;}
+        .deposit-row input{font-family:'IBM Plex Mono',monospace;font-size:13px;}
+        .btn-add-deposit{display:flex;align-items:center;gap:5px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--accent-amber);padding:5px 11px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;}
+        .btn-add-deposit:hover{background:rgba(245,158,11,.18);border-color:rgba(245,158,11,.5);}
+        .btn-remove-deposit{background:transparent;border:1px solid var(--border);color:var(--text-muted);width:30px;height:34px;border-radius:6px;cursor:pointer;font-size:14px;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+        .btn-remove-deposit:hover{border-color:var(--accent-red);color:var(--accent-red);background:rgba(239,68,68,.08);}
+        .deposits-hint{font-size:10px;color:var(--text-muted);margin-top:8px;line-height:1.5;font-style:italic;}
         .slot-num{font-size:11px;font-weight:700;color:var(--accent-cyan);letter-spacing:.05em;}
         .ac-wrap{position:relative;}
         .ac-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg-elevated);border:1px solid var(--border-bright);border-radius:8px;z-index:200;max-height:200px;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.8);display:none;}
@@ -169,16 +181,27 @@
             <button onclick="closeModal()" class="text-slate-500 hover:text-white text-xl leading-none">&times;</button>
         </div>
         <input type="hidden" id="editName">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
             <div><label class="modal-label">記帳幣別</label>
                 <select id="editCurrency" onchange="updateModalSummary()" class="modal-input" style="cursor:pointer;">
                     <option value="USD">美元 (USD)</option><option value="TWD">新台幣 (TWD)</option>
                 </select></div>
-            <div><label class="modal-label">初始本金（鎖定）</label><input type="text" id="displayInitialCapital" readonly class="modal-input mono"></div>
-            <div><label class="modal-label" style="color:var(--accent-cyan)">當前現金水位（自動計算）</label><input type="number" step="0.01" id="editCash" readonly class="modal-input mono" style="background:#040405;color:var(--text-secondary);" placeholder="0"></div>
+            <div><label class="modal-label" style="color:var(--accent-amber)">累積入金（自動加總，唯讀）</label><input type="text" id="displayTotalDeposit" readonly class="modal-input mono" style="color:var(--accent-amber);font-weight:600;"></div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-            <div><label class="modal-label">帳戶淨值（初始本金 + 損益）</label><input type="text" id="displayNetValue" readonly class="modal-input net-preview"></div>
+
+        <!-- ── 入金紀錄區塊 ────────────────── -->
+        <div class="deposits-box">
+            <div class="deposits-header">
+                <span class="deposits-title">💰 入金紀錄（依日期排序，績效自動分段計算）</span>
+                <button type="button" class="btn-add-deposit" onclick="addDepositRow()">＋ 新增入金</button>
+            </div>
+            <div id="depositRows"></div>
+            <div class="deposits-hint">提示：每筆入金的日期會作為績效分段的切點，曲線採 TWR 計算，加碼當下不會造成績效斷層。</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
+            <div><label class="modal-label" style="color:var(--accent-cyan)">當前現金水位（自動計算）</label><input type="number" step="0.01" id="editCash" readonly class="modal-input mono" style="background:#040405;color:var(--text-secondary);" placeholder="0"></div>
+            <div><label class="modal-label">帳戶淨值（累積入金 + 損益）</label><input type="text" id="displayNetValue" readonly class="modal-input net-preview"></div>
             <div><label class="modal-label">當前淨值（現金 + 持股市值）</label><input type="text" id="displayCurrentValue" readonly class="modal-input" style="color:var(--accent-cyan);font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;"></div>
         </div>
         <hr class="divider">
@@ -400,9 +423,43 @@ function saveHiddenLabels(){
 }
 
 function getFixedInitialCapital(c){return c==='USD'?3161.5:100000;}
+
+// ── 入金紀錄 helpers ─────────────────────
+// 資料結構: p.deposits = [{date: 'YYYY-MM-DD', amount: number}, ...]
+// 向後相容: 若 p 沒有 deposits 陣列, 用 getFixedInitialCapital 作為單筆起始入金 (日期=BENCHMARK_START_DATE)
+function getDeposits(p){
+    if(!p) return [];
+    if(Array.isArray(p.deposits) && p.deposits.length > 0){
+        return p.deposits
+            .map(d => ({
+                date: normalizeDate(d.date || ''),
+                amount: parseFloat(d.amount) || 0
+            }))
+            .filter(d => d.date && d.amount > 0)
+            .sort((a,b) => a.date.localeCompare(b.date));
+    }
+    // 舊資料相容: 沒有 deposits 陣列, 用固定初始本金作為起始入金
+    return [{ date: BENCHMARK_START_DATE, amount: getFixedInitialCapital(p.currency) }];
+}
+
+// 累積入金 (日期 <= dateStr 為止)
+function getCumulativeDeposit(p, dateStr){
+    return getDeposits(p).reduce((sum, d) => sum + (d.date <= dateStr ? d.amount : 0), 0);
+}
+
+// 全部入金總額
+function getTotalDeposit(p){
+    return getDeposits(p).reduce((sum, d) => sum + d.amount, 0);
+}
+
+// 某一日的單日入金額 (date 完全相等)
+function getDepositOnDate(p, dateStr){
+    return getDeposits(p).reduce((sum, d) => sum + (d.date === dateStr ? d.amount : 0), 0);
+}
+
 const defaultData=[
-    {name:"參賽者一號",currency:"USD",cash:3161.5,leverageRate:0,stocks:[],trades:[]},
-    {name:"參賽者四號",currency:"TWD",cash:100000,leverageRate:0,stocks:[],trades:[]}
+    {name:"參賽者一號",currency:"USD",cash:3161.5,leverageRate:0,stocks:[],trades:[],deposits:[{date:BENCHMARK_START_DATE,amount:3161.5}]},
+    {name:"參賽者四號",currency:"TWD",cash:100000,leverageRate:0,stocks:[],trades:[],deposits:[{date:BENCHMARK_START_DATE,amount:100000}]}
 ];
 
 async function fetchExchangeRate(){try{const r=await fetch('https://open.er-api.com/v6/latest/USD');const d=await r.json();if(d.rates?.TWD)usdToTwd=d.rates.TWD;}catch(e){}}
@@ -757,7 +814,7 @@ function renderBenchmarks(){
 
 // ── 計算參賽者當前淨值（記帳幣別） ────────
 function calcCurrentNetValue(p){
-    const initCap = getFixedInitialCapital(p.currency);
+    const totalDep = getTotalDeposit(p);
     const stocks = Array.isArray(p.stocks) ? p.stocks : [];
     const trades = Array.isArray(p.trades) ? p.trades : [];
     let totalUnPnl = 0;
@@ -771,7 +828,7 @@ function calcCurrentNetValue(p){
         totalUnPnl += convertCurrency(unPnlRaw, sCur, p.currency);
     });
     const realPnl = trades.reduce((sum,t)=>sum+(parseFloat(t.pnl)||0),0);
-    return initCap + realPnl + totalUnPnl;
+    return totalDep + realPnl + totalUnPnl;
 }
 
 // ── 取得台北時間「今日」(YYYY-MM-DD) ──────
@@ -829,6 +886,7 @@ async function takeDailySnapshot(){
             netValue: netVal,
             currency: p.currency,
             initCap: getFixedInitialCapital(p.currency),
+            cumDeposit: getCumulativeDeposit(p, today),
             name: p.name,
             ts: Date.now()
         };
@@ -911,11 +969,14 @@ async function backfillHistoricalSnapshots(){
             const hasRealFlat = ex && typeof ex.netValue==='number' && !ex.backfilled;
             if(hasRealUS || hasRealFlat) continue;
 
-            const netVal = initCap + cumPnl;
+            // 回填淨值: 累積入金(該日為止) + 累積已實現損益(該日為止)
+            const cumDep = getCumulativeDeposit(p, date);
+            const netVal = cumDep + cumPnl;
             updates[`dailySnapshotsV2/${idx}/${date}/us`] = {
                 netValue: netVal,
                 currency: p.currency,
                 initCap: initCap,
+                cumDeposit: cumDep,
                 name: p.name,
                 ts: Date.now(),
                 backfilled: true,
@@ -1105,9 +1166,9 @@ function getAllTradingDates(){
 // ── 計算玩家在指定日期的淨值 (記帳幣別) ──────
 // dateStr      : YYYY-MM-DD
 // useLivePrice : true=今日端點(用即時價含夜盤/盤後), false=歷史(用該日或之前收盤)
-// 邏輯: 初始本金 + 累積已實現損益(<=dateStr) + 當日持股未實現損益
+// 邏輯: 累積入金(<=dateStr) + 累積已實現損益(<=dateStr) + 當日持股未實現損益
 function calcNetValueOnDate(p, dateStr, useLivePrice){
-    const initCap = getFixedInitialCapital(p.currency);
+    const cumDep = getCumulativeDeposit(p, dateStr);
     const trades = Array.isArray(p.trades) ? p.trades : [];
     const stocks = Array.isArray(p.stocks) ? p.stocks : [];
 
@@ -1160,7 +1221,7 @@ function calcNetValueOnDate(p, dateStr, useLivePrice){
         });
     });
 
-    return initCap + cumPnl + unrealized;
+    return cumDep + cumPnl + unrealized;
 }
 
 // ── 防抖排程繪圖 ──────────────────────────
@@ -1197,16 +1258,17 @@ function renderPerformanceChart(){
     const lastTradingDayStr = allDates.length ? allDates[allDates.length - 1] : todayStr;
     const isTodayWeekend = (lastTradingDayStr !== todayStr);
 
-    // 2. 參賽者 datasets — 每日淨值定錨
-    //    每日淨值 = 初始本金 + 累積已實現損益(截至該日) + 當日持股的未實現損益
-    //    當日持股 = 當前持倉中 buyDate <= 該日的部位; 用該日(或之前最近)收盤估值
-    //    最後一個交易日(今日) = 用即時價格(含夜盤/盤後)估值
+    // 2. 參賽者 datasets — TWR 時間加權報酬率
+    //    每筆入金日期作為分段切點,加碼當下不會造成績效斷層
+    //    runningTWR 為複利成長因子, 每段內 partial_return = (NAV_today_ex_today_deposit - segStart) / segStart
+    //    output % = (runningTWR * (1 + partial_return) - 1) * 100
     const playerColors = ['#a855f7', '#ffffff', '#fbbf24', '#06b6d4', '#ec4899'];
     const datasets = [];
     participants.forEach((p, idx)=>{
-        const initCap = getFixedInitialCapital(p.currency);
         const trades = Array.isArray(p.trades) ? p.trades : [];
         const stocks = Array.isArray(p.stocks) ? p.stocks : [];
+        const deposits = getDeposits(p); // 已依日期排序
+
         // 交易已實現損益: 用 ticker 判定幣別後換算到記帳幣別
         const tradesByDate = trades.map(t => ({
             date: normalizeDate(t.date || ''),
@@ -1233,9 +1295,20 @@ function renderPerformanceChart(){
             };
         });
 
+        // ── TWR 狀態變數 ──
+        let runningTWR = 1.0;          // 複利累積成長因子
+        let segStartValue = 0;          // 當前段落起點淨值(含當段起點入金)
+        let segStarted = false;         // 是否已進入第一段
         let cumPnl = 0;
         let ti = 0;
+        // 入金索引指標
+        let depIdx = 0;
+        // 入金按日期歸併: depByDate[date] = sum_amount
+        const depByDate = {};
+        deposits.forEach(d => { depByDate[d.date] = (depByDate[d.date] || 0) + d.amount; });
+
         const data = allDates.map(date => {
+            // 累積已實現損益更新
             while(ti < tradesByDate.length && tradesByDate[ti].date <= date){
                 cumPnl += tradesByDate[ti].pnl;
                 ti++;
@@ -1246,7 +1319,6 @@ function renderPerformanceChart(){
             let unrealized = 0;
             stockInfo.forEach(s => {
                 if(!s.ticker) return;
-
                 let priceOnDate;
                 if(isLastPoint){
                     priceOnDate = (s.session==='🌙 夜盤' && s.prePrice>0)  ? s.prePrice  :
@@ -1255,8 +1327,6 @@ function renderPerformanceChart(){
                 } else {
                     priceOnDate = getStockCloseOnOrBefore(s.ticker, date);
                 }
-
-                // 逐 lot: 每筆 lot 只在自己的 buyDate <= date 才生效
                 s.lots.forEach(lot => {
                     if(lot.shares <= 0) return;
                     if(lot.buyDate && lot.buyDate > date) return;
@@ -1267,8 +1337,48 @@ function renderPerformanceChart(){
                 });
             });
 
-            const netVal = initCap + cumPnl + unrealized;
-            return ((netVal - initCap) / initCap) * 100;
+            // 當日累積入金
+            const cumDep = deposits.reduce((s,d)=> s + (d.date <= date ? d.amount : 0), 0);
+            // 當日入金金額 (新增分段的點)
+            const depToday = depByDate[date] || 0;
+            // 當日完整淨值 (含今日入金)
+            const navToday = cumDep + cumPnl + unrealized;
+
+            // ── TWR 段落更新邏輯 ──
+            if(!segStarted){
+                // 尚未進入任何段落: 等第一筆入金或第一個有資金的日期
+                if(cumDep > 0){
+                    segStarted = true;
+                    segStartValue = navToday; // 第一段起點 = 當日完整淨值
+                    runningTWR = 1.0;
+                    return 0; // 起點 = 0%
+                }
+                return null; // 還沒有資金,曲線斷點
+            }
+
+            if(depToday > 0 && date !== lastTradingDayStr && segStartValue > 0){
+                // 今天有入金 → 收尾前一段, 開新段
+                // 前段結束值 = 今日淨值排除今日入金
+                const segEndValue = navToday - depToday;
+                const segReturn = (segEndValue - segStartValue) / segStartValue;
+                runningTWR *= (1 + segReturn);
+                // 新段起點 = 含今日入金的淨值
+                segStartValue = navToday;
+                return (runningTWR - 1) * 100;
+            }
+
+            // 一般日: 計算段內 partial_return (排除今日新入金)
+            const valForReturn = navToday - depToday;
+            if(segStartValue <= 0) return 0;
+            const partialReturn = (valForReturn - segStartValue) / segStartValue;
+            // 若今天剛好有入金 (但是最後端點),依然要把入金當段啟動點處理一次
+            if(depToday > 0 && date === lastTradingDayStr){
+                // 收尾前一段
+                runningTWR *= (1 + partialReturn);
+                segStartValue = navToday;
+                return (runningTWR - 1) * 100;
+            }
+            return (runningTWR * (1 + partialReturn) - 1) * 100;
         });
 
         const color = getPlayerColor(p.name, playerColors[idx % playerColors.length]);
@@ -1425,7 +1535,7 @@ function renderPerformanceChart(){
         const stockTickerCount = Object.keys(stockHistory).length;
         const stockDaysTotal = Object.values(stockHistory).reduce((s,h)=>s+h.length,0);
         const weekendHint = isTodayWeekend ? `｜<span style="color:var(--accent-amber);">📅 今日週末・最新端點=${lastTradingDayStr}（即時價）</span>` : '';
-        statusEl.innerHTML = `📅 ${allDates.length} 個交易日｜📊 ${totalTrades} 筆交易 + ${stockTickerCount} 支持股歷史 (${stockDaysTotal} 筆收盤)｜大盤 ${totalBmDays} 筆${weekendHint}<br><span style="color:var(--text-muted);">每日淨值 = 初始本金 + 累積已實現損益 + 當日持股 × 收盤價（最後端點改用即時價）</span>`;
+        statusEl.innerHTML = `📅 ${allDates.length} 個交易日｜📊 ${totalTrades} 筆交易 + ${stockTickerCount} 支持股歷史 (${stockDaysTotal} 筆收盤)｜大盤 ${totalBmDays} 筆${weekendHint}<br><span style="color:var(--text-muted);">績效曲線採 TWR 時間加權報酬率（每筆入金日期自動分段）</span>`;
     }
 }
 
@@ -1569,7 +1679,7 @@ function renderDashboard(){
     let lb=[];
     const pdiv=document.getElementById('portfolios');pdiv.innerHTML='';
     participants.forEach(p=>{
-        const initCap=getFixedInitialCapital(p.currency);
+        const totalDep=getTotalDeposit(p);          // 累積入金 (取代原 initCap)
         const stocks=Array.isArray(p.stocks)?p.stocks:[];
         const trades=Array.isArray(p.trades)?p.trades:[];
         let totalMV=0,totalUnPnl=0, totalCost=0;
@@ -1600,7 +1710,7 @@ function renderDashboard(){
             return sum + convertCurrency(raw, tCur, p.currency);
         }, 0);
 
-        const netVal=initCap+realPnl+totalUnPnl;
+        const netVal=totalDep+realPnl+totalUnPnl;
         const valTWD=p.currency==='USD'?netVal*usdToTwd:netVal;
         const valUSD=p.currency==='TWD'?netVal/usdToTwd:netVal;
 
@@ -1628,7 +1738,8 @@ function renderDashboard(){
         const autoCash = netVal - totalMV;
         const currentVal = autoCash + totalMV; // = netVal
 
-        const retPct=(((netVal-initCap)/initCap)*100).toFixed(2);
+        // 報酬 % 相對累積入金 (取代原本相對初始本金)
+        const retPct=totalDep>0?(((netVal-totalDep)/totalDep)*100).toFixed(2):'0.00';
         
         // 最高槓桿金額 = 帳戶淨值 × 60%
         const maxLeverage = netVal * 0.6;
@@ -1645,7 +1756,7 @@ function renderDashboard(){
             returnPct:retPct,
             netVal,
             currency:p.currency,
-            initCapStr:fmtRaw(initCap,p.currency),
+            initCapStr:fmtRaw(totalDep,p.currency),
             netValueStr:fmtRaw(netVal,p.currency),
             dailyChange,
             dailyChangePct
@@ -1944,10 +2055,10 @@ function renderDashboard(){
             <div class="net-value-box" style="margin-bottom:16px;">
                 <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">帳戶淨值</div>
                 <div class="text-3xl">${fmtC(netVal,p.currency,true)}</div>
-                <div class="text-xs mono font-semibold ${parseFloat(retPct)>=0?'text-emerald-400':'text-red-400'}" style="margin-top:6px;">${parseFloat(retPct)>=0?'▲':'▼'} ${retPct}%（相對初始本金）</div>
+                <div class="text-xs mono font-semibold ${parseFloat(retPct)>=0?'text-emerald-400':'text-red-400'}" style="margin-top:6px;">${parseFloat(retPct)>=0?'▲':'▼'} ${retPct}%（相對累積入金）</div>
             </div>
             <div class="space-y-1" style="margin-bottom:16px;">
-                <div class="stat-row"><span class="stat-label">初始本金</span><span class="mono text-white text-xs">${fmtRaw(initCap,p.currency)}</span></div>
+                <div class="stat-row"><span class="stat-label">累積入金 <span style="color:var(--text-muted);font-size:10px;">(${getDeposits(p).length} 筆)</span></span><span class="mono font-bold text-amber-300 text-xs">${fmtRaw(totalDep,p.currency)}</span></div>
                 <div class="stat-row"><span class="stat-label">持有現金</span>${fmtC(autoCash,p.currency,true)}</div>
                 <div class="stat-row"><span class="stat-label">持股總市值</span>${fmtC(totalMV,p.currency,true)}</div>
                 <div class="stat-row"><span class="stat-label">當前淨值（現金+持股）</span><span class="mono font-bold text-cyan-400 text-sm">${fmtRaw(currentVal,p.currency)}</span></div>
@@ -2041,6 +2152,17 @@ function openModal(name){
     document.getElementById('editName').value=name;
     document.getElementById('editCurrency').value=p.currency;
     
+    // ── 渲染入金紀錄 ──
+    const depBox=document.getElementById('depositRows');
+    depBox.innerHTML='';
+    const deps=getDeposits(p);
+    if(deps.length===0){
+        // 若毫無紀錄, 自動加一筆空白(預設今日, 金額 0 — 由用戶輸入)
+        addDepositRow();
+    } else {
+        deps.forEach(d=>addDepositRow(d.date, d.amount));
+    }
+    
     const container=document.getElementById('stockSlots');container.innerHTML='';
     const stocks=Array.isArray(p.stocks)?p.stocks:[];
     if(stocks.length===0)addStockSlot();else stocks.forEach(s=>addStockSlot(s));
@@ -2060,7 +2182,71 @@ function editName(oldName){
     setStatus('loading','🟡 更新名稱中...');
 }
 
-function closeModal(){document.getElementById('editModal').classList.remove('open');document.getElementById('stockSlots').innerHTML='';}
+function closeModal(){document.getElementById('editModal').classList.remove('open');document.getElementById('stockSlots').innerHTML='';document.getElementById('depositRows').innerHTML='';}
+
+// ── 入金紀錄 Modal 操作 ────────────────────
+// 預設新增一列的日期 = 今天 (台北), 金額空白
+function addDepositRow(date='', amount=''){
+    const box=document.getElementById('depositRows');
+    if(!box) return;
+    const todayDef = (function(){
+        const tw=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
+        const y=tw.getFullYear(), m=String(tw.getMonth()+1).padStart(2,'0'), d=String(tw.getDate()).padStart(2,'0');
+        return `${y}-${m}-${d}`;
+    })();
+    const row=document.createElement('div');
+    row.className='deposit-row';
+    row.innerHTML=`
+        <input type="date" class="modal-input deposit-date" value="${date || todayDef}" oninput="onDepositChange()">
+        <input type="number" step="0.01" class="modal-input deposit-amount" value="${amount || ''}" placeholder="金額" oninput="onDepositChange()">
+        <button type="button" class="btn-remove-deposit" title="刪除這筆" onclick="removeDepositRow(this)">×</button>
+    `;
+    box.appendChild(row);
+    onDepositChange();
+}
+
+function removeDepositRow(btn){
+    const box=document.getElementById('depositRows');
+    const row=btn.closest('.deposit-row');
+    if(!row || !box) return;
+    // 至少保留一列(空的也可)
+    if(box.querySelectorAll('.deposit-row').length<=1){
+        // 改為清空欄位
+        row.querySelector('.deposit-date').value='';
+        row.querySelector('.deposit-amount').value='';
+    } else {
+        row.remove();
+    }
+    onDepositChange();
+}
+
+// 任一入金欄位變動 → 重新計算累積入金與淨值預覽
+function onDepositChange(){
+    // 自動依日期排序顯示 (依使用者輸入即時排序; 留空欄位不參與排序)
+    const box=document.getElementById('depositRows');
+    if(!box) return;
+    const rows=[...box.querySelectorAll('.deposit-row')];
+    rows.sort((a,b)=>{
+        const da=a.querySelector('.deposit-date').value;
+        const db=b.querySelector('.deposit-date').value;
+        if(!da) return 1;
+        if(!db) return -1;
+        return da.localeCompare(db);
+    });
+    rows.forEach(r=>box.appendChild(r));
+    updateModalSummary();
+}
+
+// 從 modal UI 讀取入金陣列 (用於 saveData / 預覽)
+function readModalDeposits(){
+    const out=[];
+    document.querySelectorAll('#depositRows .deposit-row').forEach(row=>{
+        const d=(row.querySelector('.deposit-date').value||'').trim();
+        const a=parseFloat(row.querySelector('.deposit-amount').value)||0;
+        if(d && a>0) out.push({date:normalizeDate(d), amount:a});
+    });
+    return out.sort((x,y)=>x.date.localeCompare(y.date));
+}
 
 // ── 色票選擇器 ───────────────────────────
 function openColorPicker(type, key, currentColor){
@@ -2323,8 +2509,12 @@ function updateModalSummary(){
     const p=participants[pi];
 
     const currency=document.getElementById('editCurrency').value;
-    const initCap=getFixedInitialCapital(currency);
-    document.getElementById('displayInitialCapital').value=fmtRaw(initCap,currency);
+
+    // 累積入金 (從 modal UI 即時計算, 而非 p.deposits)
+    const modalDeps=readModalDeposits();
+    const totalDep=modalDeps.reduce((s,d)=>s+d.amount,0);
+    const dispDep=document.getElementById('displayTotalDeposit');
+    if(dispDep) dispDep.value=fmtRaw(totalDep,currency);
 
     let stockValue=0;
     let stockCost=0;
@@ -2354,7 +2544,7 @@ function updateModalSummary(){
         return sum + convertCurrency(pnl, tCur, currency);
     },0);
 
-    const netVal = initCap + realPnl + (stockValue - stockCost);
+    const netVal = totalDep + realPnl + (stockValue - stockCost);
     const currentCash = netVal - stockValue;
 
     const cashEl = document.getElementById('editCash');
@@ -2369,6 +2559,14 @@ function updateModalSummary(){
 function saveData(){
     const name=document.getElementById('editName').value;
     const pi=participants.findIndex(p=>p.name===name);if(pi===-1)return;
+
+    // ── 收集入金紀錄 ──
+    const newDeposits = readModalDeposits();
+    if(newDeposits.length === 0){
+        alert('請至少輸入一筆入金紀錄（日期 + 金額）');
+        return;
+    }
+
     const newStocks=[];
     document.querySelectorAll('.stock-slot').forEach(slot=>{
         const ticker=(slot.querySelector('.slot-ticker').value||'').toUpperCase().trim();
@@ -2407,7 +2605,13 @@ function saveData(){
         if(earliestDate) obj.buyDate = earliestDate;
         newStocks.push(obj);
     });
-    const updated={...participants[pi],currency:document.getElementById('editCurrency').value,cash:parseFloat(document.getElementById('editCash').value)||0,stocks:newStocks};
+    const updated={
+        ...participants[pi],
+        currency:document.getElementById('editCurrency').value,
+        cash:parseFloat(document.getElementById('editCash').value)||0,
+        stocks:newStocks,
+        deposits:newDeposits
+    };
     db.ref('competitionDataV2/'+pi).set(updated);
     closeModal();setStatus('loading','🟡 同步變更中...');
 }
