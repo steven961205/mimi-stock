@@ -1999,11 +1999,24 @@ function renderDashboard(){
                         const ls = parseFloat(lot.shares)||0;
                         const lp = parseFloat(lot.buyPrice)||0;
                         const lotCost = ls * lp;
-                        return `<div style="display:grid;grid-template-columns:48px 1fr 1fr 1fr;gap:6px;padding:3px 6px;background:rgba(10,10,12,.5);border-radius:4px;font-size:11px;">
-                            <span style="color:var(--accent-amber);font-weight:700;">第${i+1}筆</span>
-                            <span style="color:var(--text-muted);" class="mono">${ld}</span>
-                            <span style="color:var(--text-secondary);">${ls.toLocaleString()} 股 @ <span class="mono text-white">${lp.toFixed(2)}</span></span>
-                            <span style="color:var(--text-muted);text-align:right;" class="mono">${fmtRaw(lotCost,sCurrency)}</span>
+                        // 該筆績效 = 該筆股數 × (現價 - 該筆買價)
+                        const lotMV   = ls * latestPrice;
+                        const lotPnl  = lotMV - lotCost;
+                        const lotPnlPct = lotCost>0 ? ((lotPnl/lotCost)*100).toFixed(2) : '0.00';
+                        const lotPs   = lotPnl>=0?'+':'-';
+                        const lotPctSign = lotPnl>=0?'+':'';
+                        const lotCls  = lotPnl<0?'text-red-400':'text-emerald-400';
+                        return `<div style="padding:4px 6px;background:rgba(10,10,12,.5);border-radius:4px;font-size:11px;">
+                            <div style="display:grid;grid-template-columns:48px 1fr 1fr 1fr;gap:6px;">
+                                <span style="color:var(--accent-amber);font-weight:700;">第${i+1}筆</span>
+                                <span style="color:var(--text-muted);" class="mono">${ld}</span>
+                                <span style="color:var(--text-secondary);">${ls.toLocaleString()} 股 @ <span class="mono text-white">${lp.toFixed(2)}</span></span>
+                                <span style="color:var(--text-muted);text-align:right;" class="mono">${fmtRaw(lotCost,sCurrency)}</span>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px;padding-top:3px;border-top:1px dashed rgba(31,31,36,.5);font-size:10px;">
+                                <span style="color:var(--text-muted);">市值 <span class="mono" style="color:var(--accent-cyan);">${fmtRaw(lotMV,sCurrency)}</span></span>
+                                <span style="color:var(--text-muted);">該筆績效 <span class="font-bold mono ${lotCls}">${lotPs}${fmtRaw(lotPnl,sCurrency)} <span style="opacity:.8">(${lotPctSign}${lotPnlPct}%)</span></span></span>
+                            </div>
                         </div>`;
                     }).join('');
                     lotsHTML = `<div style="margin-top:6px;padding-top:6px;border-top:1px dashed rgba(168,85,247,.3);">
