@@ -163,7 +163,7 @@
                 <span>📈</span> 投資組合績效曲線
                 <span class="text-xs font-normal text-slate-400 ml-1">（自 2026/05/04 起・週一～週五・累積%）</span>
             </h2>
-            <span class="text-xs text-slate-500" id="snapshot-window-hint" style="font-style:italic;">📊 玩家曲線=每日持股收盤定錨 · 含已實現+未實現損益 · 大盤=每日收盤</span>
+            <span class="text-xs text-slate-500" id="snapshot-window-hint" style="font-style:italic;">📊 玩家曲線=每日收盤定錨 · 含已實現+未實現 · 已平倉部位於持倉期間逐日定錨 · 大盤=每日收盤</span>
         </div>
         <div style="height:380px;position:relative;">
             <canvas id="performance-chart"></canvas>
@@ -225,10 +225,17 @@
         <input type="hidden" id="tradeName">
         <input type="hidden" id="tradeIndex" value="">
 
-        <div style="margin-bottom:12px;">
-            <label class="modal-label">交易日期</label>
-            <input type="date" id="tradeDate" class="modal-input">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+                <label class="modal-label" title="開始持有這筆部位的日期，曲線會從這天開始逐日市值評估">建倉日期（持倉起）</label>
+                <input type="date" id="tradeBuyDate" class="modal-input" onchange="calcTradePreview()">
+            </div>
+            <div>
+                <label class="modal-label" title="平倉/結算的日期，曲線在這天改用最終已實現損益">平倉日期（持倉迄）</label>
+                <input type="date" id="tradeDate" class="modal-input" onchange="calcTradePreview()">
+            </div>
         </div>
+        <div id="tradeHoldHint" style="font-size:11px;color:var(--text-muted);margin:-6px 0 12px 0;min-height:15px;"></div>
         
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
             <div>
@@ -606,6 +613,15 @@ function formatDateShort(s){
     const parts = norm.split('-');
     if(parts.length !== 3) return '';
     return `${parts[0].slice(-2)}/${parts[1]}/${parts[2]}`;
+}
+
+// 短日期 M/D (對齊績效曲線 X 軸標籤格式, 例: 2026-05-20 → 5/20)
+function fmtMD(s){
+    const n = normalizeDate(s);
+    if(!n) return '';
+    const parts = n.split('-');
+    if(parts.length !== 3) return n;
+    return `${parseInt(parts[1],10)}/${parseInt(parts[2],10)}`;
 }
 
 async function fetchStockPrice(ticker){
@@ -1242,6 +1258,10 @@ async function refreshStockHistory(){
         const tickers = new Set();
         participants.forEach(p=>{
             (p.stocks||[]).forEach(s=>{ if(s.ticker) tickers.add(s.ticker); });
+            // 已平倉但有建倉日的交易 → 需要日K回算持倉期間的逐日淨值
+            (p.trades||[]).forEach(t=>{
+                if(t.ticker && t.firstBuyDate && t.date) tickers.add(t.ticker);
+            });
         });
         const list = [...tickers];
         if(list.length === 0){
@@ -1354,6 +1374,22 @@ function calcNetValueOnDate(p, dateStr, useLivePrice){
         });
     });
 
+    // 已平倉交易: 在持倉視窗 [建倉日, 平倉日) 內以該日收盤價逐日市值評估
+    // (平倉日當天起改由上方 cumPnl 計入最終已實現損益, 故不重複)
+    trades.forEach(t => {
+        const open  = normalizeDate(t.firstBuyDate || '');
+        const close = normalizeDate(t.date || '');
+        const shares   = parseFloat(t.shares)   || 0;
+        const buyPrice = parseFloat(t.buyPrice) || 0;
+        const ticker   = t.ticker || '';
+        if(!ticker || shares <= 0 || buyPrice <= 0 || !open || !close || open >= close) return;
+        if(dateStr < open || dateStr >= close) return;
+        const dayClose = getStockCloseOnOrBefore(ticker, dateStr);
+        if(!dayClose || dayClose <= 0) return;
+        const tCur = getStockCurrency(ticker) || p.currency;
+        unrealized += convertCurrency(shares * (dayClose - buyPrice), tCur, p.currency);
+    });
+
     return cumDep + cumPnl + unrealized;
 }
 
@@ -1428,6 +1464,21 @@ function renderPerformanceChart(){
             };
         });
 
+        // ── 已平倉交易的「持倉視窗」: 在 [建倉日, 平倉日) 期間以每日收盤價逐日定錨 ──
+        //    平倉日當天(含之後)改由 cumPnl 計入最終已實現損益, 故此處視窗為「左閉右開」避免重複計算
+        //    僅納入有完整 建倉日/平倉日/股數/成本 且 建倉日<平倉日 的紀錄
+        const closedHoldings = trades.map(t => {
+            const open  = normalizeDate(t.firstBuyDate || '');
+            const close = normalizeDate(t.date || '');
+            return {
+                ticker:   t.ticker || '',
+                currency: getStockCurrency(t.ticker) || p.currency,
+                shares:   parseFloat(t.shares)   || 0,
+                buyPrice: parseFloat(t.buyPrice) || 0,
+                open, close
+            };
+        }).filter(h => h.ticker && h.shares > 0 && h.buyPrice > 0 && h.open && h.close && h.open < h.close);
+
         // ── TWR 狀態變數 ──
         let runningTWR = 1.0;          // 複利累積成長因子
         let segStartValue = 0;          // 當前段落起點淨值(含當段起點入金)
@@ -1468,6 +1519,16 @@ function renderPerformanceChart(){
                     const unPnlRaw = lot.shares * (useP - lot.buyPrice);
                     unrealized += convertCurrency(unPnlRaw, s.currency, p.currency);
                 });
+            });
+
+            // 已平倉交易: 持倉視窗 [建倉日, 平倉日) 內逐日以收盤價市值評估
+            //   - 平倉日當天(date >= close)不計, 改由 cumPnl 計入最終已實現損益, 避免重複
+            //   - 該日無收盤價(尚無日K)則略過, 不扭曲曲線
+            closedHoldings.forEach(h => {
+                if(date < h.open || date >= h.close) return;
+                const dayClose = getStockCloseOnOrBefore(h.ticker, date);
+                if(!dayClose || dayClose <= 0) return;
+                unrealized += convertCurrency(h.shares * (dayClose - h.buyPrice), h.currency, p.currency);
             });
 
             // 當日累積入金
@@ -2213,7 +2274,14 @@ function renderDashboard(){
                         <span>${(t.shares||0).toLocaleString()} 股</span>
                         <span>買入 <span class="mono text-white">${fmtRaw(bp,tradeCur,2)}</span></span>
                         <span>賣出 <span class="mono text-white">${fmtRaw(sp,tradeCur,2)}</span></span>
-                        ${t.date?`<span style="color:var(--text-muted)">${t.date}</span>`:''}
+                        ${(()=>{
+                            const fb = t.firstBuyDate || '';
+                            if(fb && t.date){
+                                const dd = Math.max(0, Math.round((Date.parse(normalizeDate(t.date)+'T00:00:00') - Date.parse(normalizeDate(fb)+'T00:00:00'))/86400000));
+                                return `<span style="color:var(--text-muted)" title="持倉期間 (曲線逐日定錨)">📅 ${fmtMD(fb)}~${fmtMD(t.date)} <span style="font-size:10px;opacity:.8">(${dd}天)</span></span>`;
+                            }
+                            return t.date ? `<span style="color:var(--text-muted)" title="平倉日 (未設建倉日, 曲線僅在此日記一階)">${fmtMD(t.date)}</span>` : '';
+                        })()}
                     </div>
                     ${feeRowHTML}
                     ${interestDisplay}
@@ -3203,17 +3271,8 @@ function openTradeModal(name, idx = -1){
         document.getElementById('tradeInterest').value = t.interest || '';
         document.getElementById('tradePnl').value = t.pnl || '';
 
-        let dStr = t.date || '';
-        if (dStr.includes('/')) {
-            const parts = dStr.split('/');
-            if (parts.length === 3) {
-                const y = parts[0];
-                const m = parts[1].padStart(2, '0');
-                const d = parts[2].padStart(2, '0');
-                dStr = `${y}-${m}-${d}`;
-            }
-        }
-        document.getElementById('tradeDate').value = dStr;
+        document.getElementById('tradeDate').value = normalizeDate(t.date || '');
+        document.getElementById('tradeBuyDate').value = normalizeDate(t.firstBuyDate || '');
     } else {
         ['tradeTicker','tradeShares','tradeBuyPrice','tradeSellPrice','tradeFee','tradeTax','tradeUSFee','tradeInterest','tradePnl'].forEach(id=>document.getElementById(id).value='');
         // 預設帶入該玩家折數 (台股)
@@ -3224,7 +3283,10 @@ function openTradeModal(name, idx = -1){
         const today = new Date();
         const localDateStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
         document.getElementById('tradeDate').value = localDateStr;
+        document.getElementById('tradeBuyDate').value = '';  // 建倉日留空, 由使用者填寫持倉起日
     }
+
+    document.getElementById('tradeHoldHint').textContent = '';
 
     updateTradeFieldsVisibility();
     document.getElementById('tradeCalcHint').classList.add('hidden');
@@ -3234,6 +3296,28 @@ function openTradeModal(name, idx = -1){
 function closeTradeModal(){document.getElementById('tradeModal').classList.remove('open');}
 
 function calcTradePreview(){
+    // ── 持倉期間提示 ──
+    const hintEl = document.getElementById('tradeHoldHint');
+    if(hintEl){
+        const bd = normalizeDate(document.getElementById('tradeBuyDate').value||'');
+        const cd = normalizeDate(document.getElementById('tradeDate').value||'');
+        if(bd && cd){
+            if(bd > cd){
+                hintEl.innerHTML = '⚠️ 建倉日不可晚於平倉日';
+                hintEl.style.color = 'var(--accent-red)';
+            } else {
+                const days = Math.round((Date.parse(cd+'T00:00:00') - Date.parse(bd+'T00:00:00'))/86400000);
+                hintEl.innerHTML = `📈 持倉期間 <span class="mono" style="color:var(--accent-cyan)">${fmtMD(bd)} ~ ${fmtMD(cd)}</span>（${days} 天）· 曲線將逐日以收盤價定錨`;
+                hintEl.style.color = 'var(--text-muted)';
+            }
+        } else if(cd && !bd){
+            hintEl.innerHTML = '💡 建議填寫建倉日，曲線才會在持倉期間逐日定錨（留空則僅在平倉日記一階）';
+            hintEl.style.color = 'var(--text-muted)';
+        } else {
+            hintEl.textContent = '';
+        }
+    }
+
     const ticker = (document.getElementById('tradeTicker').value || '').toUpperCase().trim();
     const isTW = ticker ? isTaiwanStock(ticker) : true;
     const sh=parseFloat(document.getElementById('tradeShares').value)||0;
@@ -3300,10 +3384,25 @@ async function saveTrade(){
         }
     }
 
+    // 建倉日(持倉起): 供曲線在持倉期間逐日定錨; 可留空(留空則僅在平倉日記一階)
+    let buyDateVal = document.getElementById('tradeBuyDate').value;
+    if(buyDateVal){
+        const bp2 = buyDateVal.split('-');
+        if(bp2.length === 3){
+            buyDateVal = `${bp2[0]}/${parseInt(bp2[1], 10)}/${parseInt(bp2[2], 10)}`;
+        }
+        // 檢核: 建倉日不可晚於平倉日
+        if(normalizeDate(buyDateVal) > normalizeDate(dateVal)){
+            alert('建倉日期不可晚於平倉日期');
+            return;
+        }
+    }
+
     if(!ticker||shares<=0){alert('請填入股票代號和股數');return;}
     
     const stockName = document.getElementById('tradeTicker').dataset.name || '';
     const newTrade = { ticker, stockName, shares, buyPrice, sellPrice, discount, fee, tax, usFee, buyFee, sellFee, interest, pnl, date: dateVal };
+    if(buyDateVal) newTrade.firstBuyDate = buyDateVal;   // 有填才寫入, 與既有平倉紀錄欄位一致
     const tList = [...(participants[pi].trades||[])];
 
     if (isEdit) {
