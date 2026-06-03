@@ -408,7 +408,7 @@ async function fetchYF(proxyUrl, timeout=12000, retries=3){
         try{
             const r = await fetch(proxyUrl, {signal:AbortSignal.timeout(timeout)});
             if(r.status === 429){
-                if(attempt < retries){ await sleep(800*(attempt+1)); continue; }
+                if(attempt < retries){ await sleep(2000*(attempt+1)); continue; }
                 return r;
             }
             return r;
@@ -3464,7 +3464,7 @@ const endDate=new Date('2026-11-04T00:00:00').getTime();
 document.getElementById('countdown').textContent=`${Math.floor(d/86400000)} 天 ${Math.floor(d%86400000/3600000)} 時 ${Math.floor(d%3600000/60000)} 分`;setTimeout(tick,60000);})();
 
 // ── 自動刷新股價（每 10 秒）────────────────
-const REFRESH_INTERVAL = 10; 
+const REFRESH_INTERVAL = 60; // 由 10s 拉長至 60s, 大幅降低請求量避免 Yahoo 限流 
 let refreshTimer = null;
 let nextRefreshIn = REFRESH_INTERVAL;
 let benchmarkRefreshCount = 0;
@@ -3477,8 +3477,12 @@ function updateRefreshCountdown(){
     }
 }
 
+let pricesRefreshing = false;
 async function refreshPrices(){
     if(participants.length === 0) return;
+    if(pricesRefreshing) return; // 上一輪還沒跑完 → 跳過, 避免請求堆疊
+    pricesRefreshing = true;
+    try{
     setStatus('loading','🔄 刷新股價中...');
     // 計算今日(ET / TPE)是否為假日,假日不發 API 請求,直接保留快取
     const etDateStr = getETDate();
@@ -3536,6 +3540,7 @@ async function refreshPrices(){
     scheduleChartRender();
     const session = getMarketSession();
     setStatus('ok', `🟢 已連線｜1 USD = ${usdToTwd.toFixed(2)} TWD｜美股 ${session}｜${new Date().toLocaleTimeString('zh-TW')}`);
+    } finally { pricesRefreshing = false; }
 }
 
 function startRefreshCountdown(){
@@ -3555,13 +3560,14 @@ db.ref('competitionDataV2').on('value', ()=>{
     startRefreshCountdown();
 }, { onlyOnce: false });
 
+let lastVisibleRefresh = 0;
 document.addEventListener('visibilitychange', ()=>{
     if(document.visibilityState === 'visible'){
-        refreshPrices();
-        refreshBenchmarks();
-        refreshBenchmarkHistory();
-        refreshStockHistory();
         startRefreshCountdown();
+        // 30 秒內剛全抓過就不重抓, 避免反覆切分頁觸發大量請求
+        if(Date.now() - lastVisibleRefresh < 30000) return;
+        lastVisibleRefresh = Date.now();
+        refreshPrices();
     } else {
         clearInterval(refreshTimer);
     }
