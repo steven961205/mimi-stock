@@ -386,6 +386,38 @@ const firebaseConfig={apiKey:"AIzaSyB0JZSBEgE11JQvPINRIHkztapNazgCrPU",authDomai
 if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 const FINNHUB_KEY='d7tibnpr01qugn0ann00d7tibnpr01qugn0ann0g';
+
+// ── 請求節流工具 (避免 Yahoo 429 Too Many Requests) ──────────
+const sleep = ms => new Promise(r=>setTimeout(r, ms));
+async function mapLimit(items, limit, gap, worker){
+    const results = new Array(items.length);
+    let idx = 0;
+    async function runner(){
+        while(idx < items.length){
+            const cur = idx++;
+            results[cur] = await worker(items[cur], cur);
+            if(gap) await sleep(gap);
+        }
+    }
+    const runners = Array.from({length: Math.min(limit, items.length)}, runner);
+    await Promise.all(runners);
+    return results;
+}
+async function fetchYF(proxyUrl, timeout=12000, retries=3){
+    for(let attempt=0; attempt<=retries; attempt++){
+        try{
+            const r = await fetch(proxyUrl, {signal:AbortSignal.timeout(timeout)});
+            if(r.status === 429){
+                if(attempt < retries){ await sleep(800*(attempt+1)); continue; }
+                return r;
+            }
+            return r;
+        }catch(e){
+            if(attempt < retries){ await sleep(500*(attempt+1)); continue; }
+            throw e;
+        }
+    }
+}
 const TIINGO_KEY='7329af027abffaca87bb56a2764ef4e81c78f481';
 const FUGLE_KEY='NTYwZmE2MjMtMTY3Ny00N2U3LTlkOGMtMTUxMmIxNTYyNmI4IDFhN2I2ZGQ2LTY2MzQtNGI0Yi1hYmE0LTI5YzZmYTE1ZjM4Zg==';
 const MAX_STOCKS=20;
@@ -649,7 +681,7 @@ async function fetchFinnhubPrice(ticker){
     const CF='https://yf-proxy.steven961205.workers.dev';
     const yfUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1m&range=1d&includePrePost=true`;
     try{
-        const r=await fetch(`${CF}?url=${encodeURIComponent(yfUrl)}`,{signal:AbortSignal.timeout(10000)});
+        const r=await fetchYF(`${CF}?url=${encodeURIComponent(yfUrl)}`,10000);
         if(r.ok){
             const raw=await r.json();
             const result=raw?.chart?.result?.[0];
@@ -779,7 +811,7 @@ async function fetchBenchmarkPerformance(symbol){
     const endTs = Math.floor(Date.now()/1000);
     const yfUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?period1=${startTs}&period2=${endTs}&interval=1d&includePrePost=false`;
     try{
-        const r=await fetch(`${CF}?url=${encodeURIComponent(yfUrl)}`,{signal:AbortSignal.timeout(12000)});
+        const r=await fetchYF(`${CF}?url=${encodeURIComponent(yfUrl)}`,12000);
         if(!r.ok) return null;
         const raw=await r.json();
         const result=raw?.chart?.result?.[0];
@@ -813,14 +845,8 @@ async function fetchBenchmarkPerformance(symbol){
 }
 
 async function refreshBenchmarks(){
-    const [dji, sp500, ndx, twii, btc, gold] = await Promise.all([
-        fetchBenchmarkPerformance('^DJI'),
-        fetchBenchmarkPerformance('^GSPC'),
-        fetchBenchmarkPerformance('^NDX'),
-        fetchBenchmarkPerformance('^TWII'),
-        fetchBenchmarkPerformance('BTC-USD'),
-        fetchBenchmarkPerformance('GC=F')   // Gold Futures
-    ]);
+    const syms = ['^DJI','^GSPC','^NDX','^TWII','BTC-USD','GC=F'];
+    const [dji, sp500, ndx, twii, btc, gold] = await mapLimit(syms, 3, 350, s=>fetchBenchmarkPerformance(s));
     benchmarkCache = { dji, sp500, ndx, twii, btc, gold, lastFetch:Date.now() };
     renderBenchmarks();
 }
@@ -1154,7 +1180,7 @@ async function fetchBenchmarkHistoryData(symbol){
     const endTs = Math.floor(Date.now()/1000);
     const yfUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?period1=${startTs}&period2=${endTs}&interval=1d&includePrePost=false`;
     try{
-        const r=await fetch(`${CF}?url=${encodeURIComponent(yfUrl)}`,{signal:AbortSignal.timeout(15000)});
+        const r=await fetchYF(`${CF}?url=${encodeURIComponent(yfUrl)}`,15000);
         if(!r.ok) return [];
         const raw=await r.json();
         const result=raw?.chart?.result?.[0];
@@ -1176,14 +1202,8 @@ async function fetchBenchmarkHistoryData(symbol){
 }
 
 async function refreshBenchmarkHistory(){
-    const [dji, sp500, ndx, twii, btc, gold] = await Promise.all([
-        fetchBenchmarkHistoryData('^DJI'),
-        fetchBenchmarkHistoryData('^GSPC'),
-        fetchBenchmarkHistoryData('^NDX'),
-        fetchBenchmarkHistoryData('^TWII'),
-        fetchBenchmarkHistoryData('BTC-USD'),
-        fetchBenchmarkHistoryData('GC=F')
-    ]);
+    const syms = ['^DJI','^GSPC','^NDX','^TWII','BTC-USD','GC=F'];
+    const [dji, sp500, ndx, twii, btc, gold] = await mapLimit(syms, 3, 350, s=>fetchBenchmarkHistoryData(s));
     benchmarkHistory = { dji, sp500, ndx, twii, btc, gold };
     scheduleChartRender();
 }
@@ -1199,7 +1219,7 @@ async function fetchStockHistoryUS(ticker){
     const endTs = Math.floor(Date.now()/1000);
     const yfUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?period1=${startTs}&period2=${endTs}&interval=1d&includePrePost=false`;
     try {
-        const r=await fetch(`${CF}?url=${encodeURIComponent(yfUrl)}`,{signal:AbortSignal.timeout(15000)});
+        const r=await fetchYF(`${CF}?url=${encodeURIComponent(yfUrl)}`,15000);
         if(!r.ok) return [];
         const raw=await r.json();
         const result=raw?.chart?.result?.[0];
@@ -1269,10 +1289,10 @@ async function refreshStockHistory(){
             scheduleChartRender();
             return;
         }
-        const results = await Promise.all(list.map(async t=>{
+        const results = await mapLimit(list, 3, 350, async t=>{
             const h = await fetchStockHistoryOne(t);
             return [t, h];
-        }));
+        });
         const next = {};
         let totalDays = 0;
         results.forEach(([t,h])=>{ next[t]=h; totalDays += h.length; });
@@ -1834,20 +1854,22 @@ db.ref('competitionDataV2').on('value',async snapshot=>{
     if(!data){db.ref('competitionDataV2').set(defaultData);return;}
     participants=Array.isArray(data)?data:Object.values(data);
     await fetchExchangeRate();
-    await Promise.all(participants.map(async(p,pi)=>{
+    const priceJobs=[];
+    participants.forEach((p,pi)=>{
         const stocks=Array.isArray(p.stocks)?p.stocks:[];
-        await Promise.all(stocks.map(async(s,si)=>{
-            if(!s.ticker)return;
-            const result=await fetchStockPrice(s.ticker);
-            if(!result)return;
-            participants[pi].stocks[si].currentPrice=result.price;
-            participants[pi].stocks[si].prevClose=result.prevClose||null;
-            participants[pi].stocks[si].postPrice=result.postPrice||null;
-            participants[pi].stocks[si].prePrice=result.prePrice||null;
-            participants[pi].stocks[si].session=result.session||'';
-            if(result.name) participants[pi].stocks[si].stockName=result.name;
-        }));
-    }));
+        stocks.forEach((s,si)=>{ if(s.ticker) priceJobs.push({pi,si,ticker:s.ticker}); });
+    });
+    await mapLimit(priceJobs, 3, 350, async job=>{
+        const result=await fetchStockPrice(job.ticker);
+        if(!result)return;
+        const {pi,si}=job;
+        participants[pi].stocks[si].currentPrice=result.price;
+        participants[pi].stocks[si].prevClose=result.prevClose||null;
+        participants[pi].stocks[si].postPrice=result.postPrice||null;
+        participants[pi].stocks[si].prePrice=result.prePrice||null;
+        participants[pi].stocks[si].session=result.session||'';
+        if(result.name) participants[pi].stocks[si].stockName=result.name;
+    });
     renderDashboard();
     setStatus('ok',`🟢 已連線｜1 USD = ${usdToTwd.toFixed(2)} TWD｜${new Date().toLocaleTimeString('zh-TW')}`);
     // 交易紀錄/持股已更新 → 重繪曲線; 同時非同步重抓持股日 K (持股新增或建倉日變更時會更新)
@@ -3465,39 +3487,42 @@ async function refreshPrices(){
     const tpDateStr = `${tpNow.getFullYear()}-${String(tpNow.getMonth()+1).padStart(2,'0')}-${String(tpNow.getDate()).padStart(2,'0')}`;
     const isTwHolidayToday = TW_MARKET_HOLIDAYS.has(tpDateStr);
     let anyUpdate = false;
-    await Promise.all(participants.map(async(p, pi)=>{
+    const refreshJobs=[];
+    participants.forEach((p,pi)=>{
         const stocks = Array.isArray(p.stocks) ? p.stocks : [];
-        await Promise.all(stocks.map(async(s, si)=>{
+        stocks.forEach((s,si)=>{
             if(!s.ticker) return;
             const isTW = s.ticker.endsWith('.TW') || s.ticker.endsWith('.TWO');
             if(isTW){
-                // 台股: 假日 或 非盤中時段 → 跳過
                 if(isTwHolidayToday) return;
                 const now = new Date();
                 const twHour = new Date(now.toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
                 const h = twHour.getHours(), m = twHour.getMinutes(), day = twHour.getDay();
                 const isWeekday = day>=1 && day<=5;
                 const isMarketHour = (h===9&&m>=0)||(h>=10&&h<=12)||(h===13&&m<=30);
-                if(!isWeekday || !isMarketHour) return; 
+                if(!isWeekday || !isMarketHour) return;
             } else {
-                // 美股: 假日跳過(避免顯示假日的延伸時段陳舊資料)
                 if(isUsHolidayToday) return;
             }
-            const result = await fetchStockPrice(s.ticker);
-            if(!result) return;
-            if(result.price !== participants[pi].stocks[si].currentPrice ||
-               result.postPrice !== participants[pi].stocks[si].postPrice ||
-               result.prePrice  !== participants[pi].stocks[si].prePrice){
-                participants[pi].stocks[si].currentPrice = result.price;
-                participants[pi].stocks[si].prevClose    = result.prevClose||null;
-                participants[pi].stocks[si].postPrice    = result.postPrice||null;
-                participants[pi].stocks[si].prePrice     = result.prePrice||null;
-                participants[pi].stocks[si].session      = result.session||'';
-                if(result.name) participants[pi].stocks[si].stockName=result.name;
-                anyUpdate = true;
-            }
-        }));
-    }));
+            refreshJobs.push({pi,si,ticker:s.ticker});
+        });
+    });
+    await mapLimit(refreshJobs, 3, 350, async job=>{
+        const {pi,si}=job;
+        const result = await fetchStockPrice(job.ticker);
+        if(!result) return;
+        if(result.price !== participants[pi].stocks[si].currentPrice ||
+           result.postPrice !== participants[pi].stocks[si].postPrice ||
+           result.prePrice  !== participants[pi].stocks[si].prePrice){
+            participants[pi].stocks[si].currentPrice = result.price;
+            participants[pi].stocks[si].prevClose    = result.prevClose||null;
+            participants[pi].stocks[si].postPrice    = result.postPrice||null;
+            participants[pi].stocks[si].prePrice     = result.prePrice||null;
+            participants[pi].stocks[si].session      = result.session||'';
+            if(result.name) participants[pi].stocks[si].stockName=result.name;
+            anyUpdate = true;
+        }
+    });
     
     // 每 6 次刷新（約 60 秒）更新一次大盤指數
     benchmarkRefreshCount++;
