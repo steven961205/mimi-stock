@@ -1872,9 +1872,13 @@ db.ref('competitionDataV2').on('value',async snapshot=>{
     });
     renderDashboard();
     setStatus('ok',`🟢 已連線｜1 USD = ${usdToTwd.toFixed(2)} TWD｜${new Date().toLocaleTimeString('zh-TW')}`);
-    // 交易紀錄/持股已更新 → 重繪曲線; 同時非同步重抓持股日 K (持股新增或建倉日變更時會更新)
+    // 交易紀錄/持股已更新 → 重繪曲線; 同時重抓持股日 K
+    // 首次載入時歷史收盤快取為空, 會導致「今日變動」算錯, 故等歷史載入完成後再 render 一次
     scheduleChartRender();
-    refreshStockHistory(); // fire-and-forget, 完成後會自己呼叫 scheduleChartRender
+    refreshStockHistory().then(()=>{
+        renderDashboard();      // 歷史快取就緒後重繪, 修正首次載入績效顯示錯誤
+        scheduleChartRender();
+    });
 });
 
 function setStatus(type,msg){const el=document.getElementById('system-status');el.className=`status-pill status-${type}`;el.textContent=msg;}
