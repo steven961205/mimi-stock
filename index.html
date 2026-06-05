@@ -3468,16 +3468,31 @@ const endDate=new Date('2026-11-04T00:00:00').getTime();
 document.getElementById('countdown').textContent=`${Math.floor(d/86400000)} 天 ${Math.floor(d%86400000/3600000)} 時 ${Math.floor(d%3600000/60000)} 分`;setTimeout(tick,60000);})();
 
 // ── 自動刷新股價（每 10 秒）────────────────
-const REFRESH_INTERVAL = 60; // 由 10s 拉長至 60s, 大幅降低請求量避免 Yahoo 限流 
+// ── 交易時段判斷（台灣時間）──────────────────────────────────────
+// 股票刷新時段：台灣時間 09:00~13:31（台股）及 16:00~次日04:00（美股）
+// 停止刷新時段：台灣時間 13:31~16:00 及 04:00~09:00（兩市均休）
+function isStockRefreshTime(){
+    const tp = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
+    const totalMin = tp.getHours() * 60 + tp.getMinutes();
+    // 台股盤中: 09:00(540)~13:31(811)
+    if(totalMin >= 540 && totalMin <= 811) return true;
+    // 美股: 16:00(960)~次日04:00(240) → totalMin >= 960 或 totalMin <= 240
+    if(totalMin >= 960 || totalMin <= 240) return true;
+    return false;
+}
+
+const STOCK_REFRESH_INTERVAL = 10;   // 股票：10 秒
+const BENCH_REFRESH_INTERVAL = 3600; // 大盤指數：60 分鐘
 let refreshTimer = null;
-let nextRefreshIn = REFRESH_INTERVAL;
-let benchmarkRefreshCount = 0;
+let nextRefreshIn = STOCK_REFRESH_INTERVAL;
+let benchmarkLastRefresh = 0;
 
 function updateRefreshCountdown(){
     const statusEl = document.getElementById('system-status');
     if(statusEl && statusEl.className.includes('status-ok')){
         const base = `🟢 已連線｜1 USD = ${usdToTwd.toFixed(2)} TWD`;
-        statusEl.textContent = `${base}｜${new Date().toLocaleTimeString('zh-TW')}｜下次刷新：${nextRefreshIn}s`;
+        const active = isStockRefreshTime();
+        statusEl.textContent = `${base}｜${new Date().toLocaleTimeString('zh-TW')}｜${active?'下次刷新：'+nextRefreshIn+'s':'⏸ 非交易時段'}`;
     }
 }
 
@@ -3503,12 +3518,6 @@ async function refreshPrices(){
             const isTW = s.ticker.endsWith('.TW') || s.ticker.endsWith('.TWO');
             if(isTW){
                 if(isTwHolidayToday) return;
-                const now = new Date();
-                const twHour = new Date(now.toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
-                const h = twHour.getHours(), m = twHour.getMinutes(), day = twHour.getDay();
-                const isWeekday = day>=1 && day<=5;
-                const isMarketHour = (h===9&&m>=0)||(h>=10&&h<=12)||(h===13&&m<=30);
-                if(!isWeekday || !isMarketHour) return;
             } else {
                 if(isUsHolidayToday) return;
             }
@@ -3532,10 +3541,10 @@ async function refreshPrices(){
         }
     });
     
-    // 每 6 次刷新（約 60 秒）更新一次大盤指數
-    benchmarkRefreshCount++;
-    if(benchmarkRefreshCount >= 6){
-        benchmarkRefreshCount = 0;
+    // 大盤指數每 60 分鐘更新一次
+    const nowTs = Date.now();
+    if(nowTs - benchmarkLastRefresh > BENCH_REFRESH_INTERVAL * 1000){
+        benchmarkLastRefresh = nowTs;
         await refreshBenchmarks();
     }
     
@@ -3549,12 +3558,17 @@ async function refreshPrices(){
 
 function startRefreshCountdown(){
     clearInterval(refreshTimer);
-    nextRefreshIn = REFRESH_INTERVAL;
+    nextRefreshIn = STOCK_REFRESH_INTERVAL;
     refreshTimer = setInterval(async()=>{
-        nextRefreshIn--;
         updateRefreshCountdown();
+        if(!isStockRefreshTime()){
+            // 非交易時段：每 30 秒檢查一次是否進入交易時段
+            nextRefreshIn = 30;
+            return;
+        }
+        nextRefreshIn--;
         if(nextRefreshIn <= 0){
-            nextRefreshIn = REFRESH_INTERVAL;
+            nextRefreshIn = STOCK_REFRESH_INTERVAL;
             await refreshPrices();
         }
     }, 1000);
