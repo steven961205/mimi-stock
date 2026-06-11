@@ -139,9 +139,106 @@
         .holding-pie-ticker{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--text-primary);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
         .holding-pie-pct{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--text-secondary);font-size:12px;flex-shrink:0;}
         .holding-pie-empty{padding:20px;text-align:center;color:var(--text-muted);font-size:12px;}
+        .market-performance-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(280px,.9fr);gap:22px;align-items:stretch;}
+        .performance-panel{min-width:0;display:flex;flex-direction:column;}
+        .market-panel{min-width:0;border-left:1px solid var(--border);padding-left:22px;display:flex;flex-direction:column;gap:8px;}
+        .market-panel .benchmark-card{padding:11px 14px;border-radius:8px;}
+        .chart-wrap{height:380px;position:relative;min-height:300px;}
+        .explain-text{display:none!important;}
+        .player-strip{position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:999px;opacity:.95;}
+        .pcard-accent{position:absolute;top:0;left:0;right:0;height:2px;opacity:.85;pointer-events:none;}
+        .rank-card{position:relative;transition:border-color .2s,box-shadow .2s,transform .2s;will-change:transform;}
+        .rank-card:hover{transform:translateY(-2px);}
+        .rank-card.rank-1::after{content:'';position:absolute;inset:-1.5px;border-radius:12px;padding:1.5px;pointer-events:none;
+            background:conic-gradient(from 0deg,rgba(251,191,36,.85),rgba(120,80,10,.12),rgba(253,230,138,.95),rgba(120,80,10,.12),rgba(251,191,36,.85));
+            -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;}
+        .rank-medal{display:inline-block;}
+        .rank-move{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;margin-left:6px;font-family:'IBM Plex Mono',monospace;flex-shrink:0;}
+        .rank-move.up{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:var(--accent-green);}
+        .rank-move.down{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:var(--accent-red);}
+        .rank-move.flat{background:rgba(90,90,96,.12);border:1px solid var(--border);color:var(--text-muted);}
+        .gap-bar-wrap{margin-top:10px;padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:var(--bg-input);}
+        .gap-bar-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--text-secondary);margin-bottom:8px;}
+        .gap-bar-track{height:14px;border-radius:999px;overflow:hidden;display:flex;background:var(--bg-base);border:1px solid var(--border-bright);}
+        .gap-bar-track>div{transition:width .8s cubic-bezier(.4,0,.2,1);min-width:0;}
+        .gap-bar-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:8px;font-size:11px;color:var(--text-secondary);}
+        .gap-bar-legend-item{display:inline-flex;align-items:center;gap:6px;min-width:0;}
+        .gap-bar-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+        .live-flip{display:inline-block;animation:liveFlip .46s cubic-bezier(.2,.7,.2,1);}
+        @keyframes liveFlip{0%{transform:rotateX(70deg);opacity:.35;filter:brightness(1.7);}100%{transform:rotateX(0);opacity:1;filter:none;}}
+        .skeleton{background:linear-gradient(90deg,#0e0e12 25%,#1a1a21 50%,#0e0e12 75%);background-size:200% 100%;
+            animation:shimmer 1.4s ease-in-out infinite;border-radius:12px;border:1px solid rgba(31,31,36,.5);}
+        @keyframes shimmer{to{background-position:-200% 0;}}
+        .stats-card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:16px;transition:border-color .2s;}
+        .stats-card:hover{border-color:var(--border-bright);}
+        .stats-card-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+        .stats-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+        .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+        .stats-item{background:var(--bg-input);border:1px solid var(--border);border-radius:8px;padding:10px 11px;}
+        .stats-label{font-size:10px;color:var(--text-muted);letter-spacing:.04em;margin-bottom:4px;font-weight:600;}
+        .stats-val{font-size:16px;font-weight:700;line-height:1.2;}
+        .stats-sub{font-size:10px;color:var(--text-muted);margin-top:3px;line-height:1.4;}
+        .stats-heatmap-title{font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-top:12px;}
+        .stats-heatmap{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;}
+        .month-cell{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 11px;border-radius:8px;font-size:10px;font-weight:700;min-width:56px;color:#f5f5f7;text-shadow:0 1px 3px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.08);}
+        .mini-rankbar{position:fixed;top:0;left:0;right:0;z-index:45;transform:translateY(-110%);transition:transform .3s ease;
+            background:rgba(8,8,10,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border);cursor:pointer;
+            box-shadow:0 8px 24px -8px rgba(0,0,0,.6);}
+        .mini-rankbar.show{transform:translateY(0);}
+        .mini-rankbar-inner{max-width:72rem;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:16px;overflow-x:auto;white-space:nowrap;font-size:12px;scrollbar-width:none;}
+        .mini-rankbar-inner::-webkit-scrollbar{display:none;}
+        .mini-rank-item{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;}
+        .mini-rank-name{color:var(--text-primary);font-weight:600;}
+        .adv-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+        .adv-nav{display:flex;align-items:center;gap:10px;}
+        .adv-arrow{width:30px;height:30px;border-radius:8px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-secondary);
+            font-size:17px;line-height:1;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;padding:0 0 2px 0;}
+        .adv-arrow:hover{border-color:var(--accent-cyan);color:var(--accent-cyan);box-shadow:0 0 10px rgba(34,211,238,.15);}
+        .adv-dots{display:flex;align-items:center;gap:7px;}
+        .adv-dot{width:7px;height:7px;border-radius:50%;background:var(--border-bright);border:none;padding:0;cursor:pointer;transition:all .2s;}
+        .adv-dot.active{background:var(--accent-cyan);box-shadow:0 0 8px rgba(34,211,238,.5);transform:scale(1.25);}
+        .adv-body{min-height:240px;}
+        .adv-fade{animation:advfade .3s ease;}
+        @keyframes advfade{from{opacity:0;transform:translateX(10px);}to{opacity:1;transform:none;}}
+        .throne-hero{display:flex;flex-direction:column;align-items:center;gap:4px;padding:18px 14px;border-radius:12px;margin-bottom:14px;
+            background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(10,10,12,.4));border:1px solid rgba(251,191,36,.3);
+            box-shadow:0 0 28px rgba(251,191,36,.07) inset;}
+        .throne-crown{font-size:30px;}
+        .throne-row,.duel-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:var(--bg-input);border:1px solid var(--border);margin-bottom:7px;}
+        .throne-bar-wrap,.duel-bar-wrap{flex:1;height:7px;border-radius:999px;background:rgba(31,31,36,.8);overflow:hidden;min-width:60px;}
+        .throne-bar,.duel-bar{height:100%;border-radius:999px;transition:width .5s ease;}
+        .throne-timeline{max-height:170px;overflow-y:auto;padding-right:4px;}
+        .throne-tl-item{display:flex;align-items:center;gap:8px;font-size:12px;padding:6px 10px;border-left:2px solid rgba(251,191,36,.35);margin-left:4px;color:var(--text-secondary);}
+        .duel-card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:14px;transition:border-color .2s;}
+        .duel-row.winner{border-color:rgba(251,191,36,.45);background:linear-gradient(135deg,rgba(251,191,36,.07),var(--bg-input));}
+        .duel-vs{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--accent-red);background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);padding:2px 8px;border-radius:999px;}
+        .replay-controls{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+        .btn-replay{display:inline-flex;align-items:center;gap:6px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);color:var(--accent-cyan);
+            padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;flex-shrink:0;}
+        input[type=range].replay-slider{flex:1;min-width:140px;-webkit-appearance:none;appearance:none;height:6px;border-radius:999px;background:var(--bg-elevated);border:1px solid var(--border);outline:none;cursor:pointer;}
+        input[type=range].replay-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent-cyan);box-shadow:0 0 10px rgba(34,211,238,.5);cursor:pointer;}
+        .replay-standings{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;margin-top:10px;}
+        #confetti-canvas{position:fixed;inset:0;z-index:90;pointer-events:none;}
+        .nav-toast{position:fixed;top:18px;left:50%;transform:translate(-50%,-30px);z-index:95;opacity:0;transition:all .35s ease;
+            background:linear-gradient(135deg,rgba(20,20,28,.96),rgba(8,8,12,.96));border:1px solid rgba(251,191,36,.5);color:#fde68a;
+            padding:10px 22px;border-radius:999px;font-size:14px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 20px rgba(251,191,36,.15);white-space:nowrap;}
+        .nav-toast.show{opacity:1;transform:translate(-50%,0);}
+        @media (max-width:640px){
+            .market-performance-grid{grid-template-columns:1fr;gap:18px;}
+            .market-panel{border-left:none;border-top:1px solid var(--border);padding-left:0;padding-top:16px;}
+            .chart-wrap{height:330px;}
+            .adv-head h2{font-size:1rem;}
+            .adv-body{min-height:200px;}
+            .mini-rankbar-inner{gap:12px;font-size:11px;padding:7px 12px;}
+            .stats-val{font-size:15px;}
+            .month-cell{min-width:50px;padding:5px 9px;}
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
+<div id="mini-rankbar" class="mini-rankbar" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="回到排行榜">
+    <div class="mini-rankbar-inner" id="mini-rankbar-inner"></div>
+</div>
 <div class="max-w-6xl mx-auto">
     <header class="text-center mb-8">
         <h1 class="text-3xl md:text-4xl font-bold text-white header-glow">投資績效</h1>
@@ -150,25 +247,52 @@
         <span class="hidden" id="countdown"></span>
     </header>
     <section class="card p-6 mb-8">
-        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2"><span>📊</span> 即時排名 <span class="text-xs font-normal text-slate-400 ml-1">（新台幣計價）</span></h2>
-        <div id="leaderboard" class="flex flex-col gap-3"></div>
-        <div id="benchmarks" class="flex flex-col gap-2 mt-4 pt-4 border-t border-slate-700/50">
-            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">📈 大盤指數對照 <span class="text-slate-600 font-normal normal-case">（自 2026/05/04 起）</span></div>
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2"><span>📊</span> 即時排名 <span class="text-xs font-normal text-slate-400 ml-1 explain-text">（新台幣計價）</span></h2>
+        <div id="leaderboard" class="flex flex-col gap-3"><div class="skeleton" style="height:62px;"></div><div class="skeleton" style="height:62px;"></div><div class="skeleton" style="height:62px;"></div></div>
+    </section>
+
+    <section class="card p-6 mb-8" id="market-performance-section">
+        <div class="market-performance-grid">
+            <div class="performance-panel">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <span>📈</span> 投資組合績效曲線
+                        <span class="text-xs font-normal text-slate-400 ml-1 explain-text">（自 2026/03/27 起・週一～週五・累積%）</span>
+                    </h2>
+                    <span class="text-xs text-slate-500 explain-text" id="snapshot-window-hint" style="font-style:italic;">📊 玩家曲線=TWR時間加權報酬 · 每筆入金自動分段 · 大盤=每日收盤</span>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="performance-chart"></canvas>
+                </div>
+                <div id="chart-status" class="text-xs text-slate-500 text-center mt-3" style="font-style:italic;">資料載入中...</div>
+            </div>
+            <div id="benchmarks" class="market-panel">
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">🌐 市場 <span class="text-slate-600 font-normal normal-case explain-text">（自 2026/03/27 起）</span></div>
+                <div class="skeleton" style="height:54px;"></div><div class="skeleton" style="height:54px;"></div><div class="skeleton" style="height:54px;"></div>
+            </div>
         </div>
     </section>
 
     <section class="card p-6 mb-8">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <span>📐</span> 績效統計
+            <span class="text-xs font-normal text-slate-400 ml-1 explain-text">（TWR時間加權報酬 · 與績效曲線同源）</span>
+        </h2>
+        <div id="stats-panel" class="grid grid-cols-1 md:grid-cols-3 gap-5"><div class="skeleton" style="height:300px;"></div><div class="skeleton" style="height:300px;"></div><div class="skeleton" style="height:300px;"></div></div>
+    </section>
+    <section class="card p-6 mb-8" id="advanced-panel">
+        <div class="adv-head">
             <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                <span>📈</span> 投資組合績效曲線
-                <span class="text-xs font-normal text-slate-400 ml-1">（自 2026/05/04 起・週一～週五・累積%）</span>
+                <span id="adv-page-icon">👑</span> <span id="adv-page-title">王座爭奪戰</span>
+                <span class="text-xs font-normal text-slate-400 ml-1 explain-text" id="adv-page-sub"></span>
             </h2>
-            <span class="text-xs text-slate-500" id="snapshot-window-hint" style="font-style:italic;">📊 玩家曲線=每日收盤定錨 · 含已實現+未實現 · 已平倉部位於持倉期間逐日定錨 · 大盤=每日收盤</span>
+            <div class="adv-nav">
+                <button class="adv-arrow" onclick="advGoto(-1)" title="上一頁">‹</button>
+                <div class="adv-dots" id="adv-dots"></div>
+                <button class="adv-arrow" onclick="advGoto(1)" title="下一頁">›</button>
+            </div>
         </div>
-        <div style="height:380px;position:relative;">
-            <canvas id="performance-chart"></canvas>
-        </div>
-        <div id="chart-status" class="text-xs text-slate-500 text-center mt-3" style="font-style:italic;">資料載入中...</div>
+        <div id="adv-body" class="adv-body"><div style="display:flex;flex-direction:column;gap:10px;"><div class="skeleton" style="height:88px;"></div><div class="skeleton" style="height:42px;"></div><div class="skeleton" style="height:42px;"></div><div class="skeleton" style="height:42px;"></div></div></div>
     </section>
     <section class="gap-5" id="portfolios" style="display:grid;grid-template-columns:1fr;"></section>
 </div>
@@ -422,6 +546,8 @@ const TIINGO_KEY='7329af027abffaca87bb56a2764ef4e81c78f481';
 const FUGLE_KEY='NTYwZmE2MjMtMTY3Ny00N2U3LTlkOGMtMTUxMmIxNTYyNmI4IDFhN2I2ZGQ2LTY2MzQtNGI0Yi1hYmE0LTI5YzZmYTE1ZjM4Zg==';
 const MAX_STOCKS=20;
 const BENCHMARK_START_DATE='2026-03-27'; // 大盤對照起始日
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function shortPlayerName(name, max=5){return Array.from(String(name || '')).slice(0, max).join('');}
 
 // ── 2026 美股 / 台股 全日休市表 ───────────────
 // 來源: NYSE 官方公告 / 臺灣證券交易所行事曆 (跨年度請手動更新)
@@ -937,7 +1063,7 @@ function renderBenchmarks(){
         return bp - ap;
     });
     const headerHtml = `<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
-        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">🌐 市場 <span class="text-slate-600 font-normal normal-case">（自 ${BENCHMARK_START_DATE} 起）</span></div>
+        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">🌐 市場 <span class="text-slate-600 font-normal normal-case explain-text">（自 ${BENCHMARK_START_DATE} 起）</span></div>
         <div id="market-countdown" class="text-xs mono" style="color:var(--text-secondary);"></div>
     </div>`;
     const rows = items.map(it=>{
@@ -1453,6 +1579,7 @@ function renderPerformanceChart(){
     //    output % = (runningTWR * (1 + partial_return) - 1) * 100
     const playerColors = ['#a855f7', '#ffffff', '#fbbf24', '#06b6d4', '#ec4899'];
     const datasets = [];
+    const playerSeries = [];
     participants.forEach((p, idx)=>{
         const trades = Array.isArray(p.trades) ? p.trades : [];
         const stocks = Array.isArray(p.stocks) ? p.stocks : [];
@@ -1596,17 +1723,19 @@ function renderPerformanceChart(){
         });
 
         const color = getPlayerColor(p.name, playerColors[idx % playerColors.length]);
+        const nav = allDates.map(date => calcNetValueOnDate(p, date, date === lastTradingDayStr));
+        playerSeries.push({ name:p.name, color, currency:p.currency, deposits:getDeposits(p), totalDep:getTotalDeposit(p), nav, ret:data });
         datasets.push({
             label: p.name,
             data,
             borderColor: color,
-            backgroundColor: color + '15',
+            backgroundColor: ctx2 => playerFillGradient(ctx2, color),
             borderWidth: 2.5,
             tension: 0.25,
             pointRadius: 0,
             pointHoverRadius: 5,
             spanGaps: true,
-            fill: false,
+            fill: 'origin',
             hidden: hiddenChartLabels.has(p.name)   // 保留隱藏狀態
         });
     });
@@ -1637,7 +1766,9 @@ function renderPerformanceChart(){
         datasets.push({
             label: bm.label,
             data,
-            borderColor: color,
+            borderColor: hexA(color,'59'),
+            fullColor: color,
+            dimColor: hexA(color,'59'),
             backgroundColor: color + '15',
             borderWidth: 2,
             tension: 0.25,
@@ -1652,7 +1783,7 @@ function renderPerformanceChart(){
 
     // 4. 繪製/更新
     const ctx = canvas.getContext('2d');
-    if(performanceChart){
+            if(performanceChart){
         performanceChart.data.labels = labels;
         performanceChart.data.datasets = datasets;
         performanceChart.update('none');
@@ -1660,9 +1791,11 @@ function renderPerformanceChart(){
         performanceChart = new Chart(ctx, {
             type: 'line',
             data: { labels, datasets },
+            plugins: [crosshairPlugin, endpointLabelPlugin],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: { padding: { right: 100 } },
                 interaction: { mode:'index', intersect:false },
                 animation: { duration: 600 },
                 plugins: {
@@ -1672,6 +1805,20 @@ function renderPerformanceChart(){
                             usePointStyle: true,
                             padding: 14,
                             font: { size:12, family:'Inter' }
+                        },
+                        onHover: function(e, legendItem, legend){
+                            const ds = legend.chart.data.datasets[legendItem.datasetIndex];
+                            if(ds && ds.fullColor && ds.borderColor !== ds.fullColor){
+                                ds.borderColor = ds.fullColor;
+                                legend.chart.update('none');
+                            }
+                        },
+                        onLeave: function(e, legendItem, legend){
+                            const ds = legend.chart.data.datasets[legendItem.datasetIndex];
+                            if(ds && ds.dimColor && ds.borderColor !== ds.dimColor){
+                                ds.borderColor = ds.dimColor;
+                                legend.chart.update('none');
+                            }
                         },
                         onClick: function(e, legendItem, legend){
                             // 維持 Chart.js 預設的顯示/隱藏切換
@@ -1751,6 +1898,346 @@ function renderPerformanceChart(){
         const weekendHint = isTodayWeekend ? `｜<span style="color:var(--accent-amber);">📅 今日週末・最新端點=${lastTradingDayStr}（即時價）</span>` : '';
         statusEl.innerHTML = `📅 ${allDates.length} 個交易日｜📊 ${totalTrades} 筆交易 + ${stockTickerCount} 支持股歷史 (${stockDaysTotal} 筆收盤)｜大盤 ${totalBmDays} 筆${weekendHint}<br><span style="color:var(--text-muted);">績效曲線採 TWR 時間加權報酬率（每筆入金日期自動分段）</span>`;
     }
+    renderStatsPanel(allDates, lastTradingDayStr, playerSeries);
+    renderAdvancedPanel(allDates, lastTradingDayStr, playerSeries);
+}
+
+function renderStatsPanel(allDates, lastTradingDayStr, series){
+    const wrap = document.getElementById('stats-panel');
+    if(!wrap) return;
+    if(!participants.length || !allDates || !allDates.length){ wrap.innerHTML=''; return; }
+    wrap.innerHTML = participants.map((p, idx)=>{
+        const s = series?.[idx] || { nav:allDates.map(date=>calcNetValueOnDate(p,date,date===lastTradingDayStr)), ret:[], totalDep:getTotalDeposit(p), color:getPlayerColor(p.name,'#a855f7') };
+        const navs = s.nav || [];
+        let peak = -Infinity, peakIdx = 0, mdd = 0, mddPeakIdx = 0, mddTroughIdx = 0;
+        navs.forEach((v,i)=>{
+            if(!isFinite(v)) return;
+            if(v > peak){ peak = v; peakIdx = i; }
+            const dd = peak > 0 ? (v - peak) / peak : 0;
+            if(dd < mdd){ mdd = dd; mddPeakIdx = peakIdx; mddTroughIdx = i; }
+        });
+        let recovered = false, ddEndIdx = navs.length - 1;
+        if(mdd < 0){
+            for(let i=mddTroughIdx;i<navs.length;i++){
+                if(navs[i] > navs[mddPeakIdx]){ recovered = true; ddEndIdx = i; break; }
+            }
+        }
+        const ddDays = mdd < 0 ? (ddEndIdx - mddPeakIdx) : 0;
+        const trades = Array.isArray(p.trades) ? p.trades : [];
+        const tStats = trades.map(t=>{
+            const tCur = getStockCurrency(t.ticker);
+            const pnl = convertCurrency(parseFloat(t.pnl)||0, tCur, p.currency);
+            let hold = null;
+            const bd = normalizeDate(t.firstBuyDate||''), sd = normalizeDate(t.date||'');
+            if(bd && sd) hold = Math.max(0, Math.round((Date.parse(sd+'T00:00:00') - Date.parse(bd+'T00:00:00')) / 86400000));
+            return { ticker:t.ticker||'--', pnl, hold };
+        });
+        const wins = tStats.filter(t=>t.pnl>0), losses = tStats.filter(t=>t.pnl<0);
+        const winRate = tStats.length ? wins.length / tStats.length * 100 : null;
+        const grossWin = wins.reduce((sum,t)=>sum+t.pnl,0);
+        const grossLoss = Math.abs(losses.reduce((sum,t)=>sum+t.pnl,0));
+        const pf = grossLoss > 0 ? grossWin/grossLoss : (grossWin>0 ? Infinity : null);
+        const holds = tStats.filter(t=>t.hold!==null);
+        const avgHold = holds.length ? holds.reduce((sum,t)=>sum+t.hold,0)/holds.length : null;
+        let best=null, worst=null;
+        tStats.forEach(t=>{ if(!best || t.pnl>best.pnl) best=t; if(!worst || t.pnl<worst.pnl) worst=t; });
+        const fmtTradePnl = t => {
+            const neg = t.pnl < 0, cls = neg ? 'text-red-400' : 'text-emerald-400';
+            return `<div class="stats-val mono ${cls}">${neg?'-':'+'}${fmtRaw(Math.abs(t.pnl), p.currency)}</div><div class="stats-sub">${esc(t.ticker)}</div>`;
+        };
+        const monthMap = {};
+        allDates.forEach((d,i)=>{
+            const m = d.slice(0,7);
+            if(!monthMap[m]) monthMap[m] = { firstIdx:i, lastIdx:i };
+            monthMap[m].lastIdx = i;
+        });
+        const months = Object.keys(monthMap).sort();
+        const monthCells = months.map(m=>{
+            const { firstIdx, lastIdx } = monthMap[m];
+            const ret = (s.ret?.[lastIdx] ?? 0) - (firstIdx>0 ? (s.ret?.[firstIdx-1] ?? 0) : 0);
+            const pos = ret >= 0;
+            const alpha = Math.min(1, Math.abs(ret) / 5 * 0.82 + 0.18);
+            const bg = pos ? `rgba(34,197,94,${alpha.toFixed(2)})` : `rgba(239,68,68,${alpha.toFixed(2)})`;
+            const label = `${parseInt(m.slice(0,4),10)%100}'${parseInt(m.slice(5,7),10)}月`;
+            return `<div class="month-cell" title="${m}：${pos?'+':''}${ret.toFixed(2)}%" style="background:${bg};"><span>${label}</span><span class="mono">${pos?'+':''}${ret.toFixed(1)}%</span></div>`;
+        }).join('');
+        return `<div class="stats-card">
+            <div class="stats-card-head"><span class="stats-dot" style="background:${s.color};box-shadow:0 0 8px ${s.color}66;"></span><span class="font-bold text-white">${esc(p.name)}</span></div>
+            <div class="stats-grid">
+                <div class="stats-item"><div class="stats-label">最大回撤 (MDD)</div><div class="stats-val mono ${mdd<0?'text-red-400':'text-slate-400'}">${mdd<0?(mdd*100).toFixed(2)+'%':'--'}</div><div class="stats-sub">${mdd<0?`持續 ${ddDays} 個交易日${recovered?' · 已收復':' · 尚未收復'}`:'尚無回撤'}</div></div>
+                <div class="stats-item"><div class="stats-label">勝率（已平倉）</div><div class="stats-val mono ${winRate===null?'text-slate-400':(winRate>=50?'text-emerald-400':'text-amber-400')}">${winRate===null?'--':winRate.toFixed(0)+'%'}</div><div class="stats-sub">${tStats.length?`${wins.length} 勝 ${losses.length} 敗 · 共 ${tStats.length} 筆`:'尚無平倉交易'}</div></div>
+                <div class="stats-item"><div class="stats-label">盈虧比</div><div class="stats-val mono ${pf===null?'text-slate-400':(pf>=1?'text-emerald-400':'text-amber-400')}">${pf===null?'--':(pf===Infinity?'∞':pf.toFixed(2))}</div><div class="stats-sub">總獲利 ÷ 總虧損</div></div>
+                <div class="stats-item"><div class="stats-label">平均持有天數</div><div class="stats-val mono ${avgHold===null?'text-slate-400':'text-white'}">${avgHold===null?'--':avgHold.toFixed(1)+' 天'}</div><div class="stats-sub">${holds.length?`計入 ${holds.length} 筆含建倉日的交易`:'交易需填建倉日期'}</div></div>
+                <div class="stats-item"><div class="stats-label">最佳單筆</div>${best?fmtTradePnl(best):'<div class="stats-val mono text-slate-400">--</div><div class="stats-sub">尚無交易</div>'}</div>
+                <div class="stats-item"><div class="stats-label">最差單筆</div>${worst?fmtTradePnl(worst):'<div class="stats-val mono text-slate-400">--</div><div class="stats-sub">尚無交易</div>'}</div>
+            </div>
+            <div class="stats-heatmap-title">月度 TWR 報酬</div><div class="stats-heatmap">${monthCells||'<span style="color:var(--text-muted);font-size:11px;">資料不足</span>'}</div>
+        </div>`;
+    }).join('');
+}
+
+const ADV_PAGES = [
+    { id:'throne', icon:'👑', title:'王座爭奪戰', sub:'（依TWR時間加權報酬率）' },
+    { id:'clash', icon:'🥊', title:'撞股對決', sub:'（現有持股重疊比較）' },
+    { id:'underwater', icon:'🌊', title:'水下回撤', sub:'（距離各自歷史高點的回撤幅度）' },
+    { id:'risk', icon:'📊', title:'風險指標', sub:'（以TWR日報酬估算）' },
+    { id:'replay', icon:'⏪', title:'比賽回放', sub:'（拖曳滑桿或按播放重溫戰況）' }
+];
+let advPage = (()=>{ const v=parseInt(localStorage.getItem('mimiAdvPage')||'0',10); return (v>=0&&v<ADV_PAGES.length)?v:0; })();
+let advData=null, advUnderwaterChart=null, advReplayChart=null, advReplayTimer=null, advReplayIdx=0, advReplayUserActive=false, advSwipeInit=false;
+function renderAdvancedPanel(allDates, lastTradingDayStr, playerSeries){
+    if(!document.getElementById('advanced-panel')) return;
+    advData = { allDates, lastTradingDayStr, players:(playerSeries||[]).map(s=>({...s, initCap:s.totalDep||0})) };
+    checkNavHighs();
+    ensureAdvSwipe();
+    renderAdvPage(false);
+}
+function advGoto(delta){ stopAdvReplay(); advReplayUserActive=false; advPage=(advPage+delta+ADV_PAGES.length)%ADV_PAGES.length; try{localStorage.setItem('mimiAdvPage',String(advPage));}catch(e){} renderAdvPage(true); }
+function advGotoIdx(i){ if(i===advPage) return; stopAdvReplay(); advReplayUserActive=false; advPage=i; try{localStorage.setItem('mimiAdvPage',String(advPage));}catch(e){} renderAdvPage(true); }
+function ensureAdvSwipe(){
+    if(advSwipeInit) return;
+    const body=document.getElementById('adv-body'); if(!body) return;
+    advSwipeInit=true; let sx=null, sy=null;
+    body.addEventListener('touchstart', e=>{ if(e.touches.length===1){ sx=e.touches[0].clientX; sy=e.touches[0].clientY; } }, {passive:true});
+    body.addEventListener('touchend', e=>{ if(sx===null) return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy; sx=sy=null; if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.6) advGoto(dx<0?1:-1); }, {passive:true});
+}
+function destroyAdvCharts(){ if(advUnderwaterChart){try{advUnderwaterChart.destroy();}catch(e){} advUnderwaterChart=null;} if(advReplayChart){try{advReplayChart.destroy();}catch(e){} advReplayChart=null;} }
+function renderAdvPage(switched){
+    const body=document.getElementById('adv-body'); if(!body) return;
+    const pg=ADV_PAGES[advPage];
+    const iconEl=document.getElementById('adv-page-icon'), titleEl=document.getElementById('adv-page-title'), subEl=document.getElementById('adv-page-sub');
+    if(iconEl) iconEl.textContent=pg.icon; if(titleEl) titleEl.textContent=pg.title; if(subEl) subEl.textContent=pg.sub;
+    const dotsEl=document.getElementById('adv-dots');
+    if(dotsEl) dotsEl.innerHTML=ADV_PAGES.map((p,i)=>`<button class="adv-dot ${i===advPage?'active':''}" onclick="advGotoIdx(${i})" title="${p.icon} ${esc(p.title)}"></button>`).join('');
+    if(switched){ destroyAdvCharts(); body.innerHTML=''; }
+    if(!switched && pg.id==='replay' && advReplayUserActive) return;
+    if(pg.id==='throne') renderAdvThrone(body);
+    if(pg.id==='clash') renderAdvClash(body);
+    if(pg.id==='underwater') renderAdvUnderwater(body);
+    if(pg.id==='risk') renderAdvRisk(body);
+    if(pg.id==='replay') renderAdvReplay(body, switched);
+    if(switched){ body.classList.remove('adv-fade'); void body.offsetWidth; body.classList.add('adv-fade'); }
+}
+function computeThrone(){
+    const { allDates, players } = advData;
+    const counts={}, longest={}, gains={}; let incumbent=null, curStreak=0, totalDays=0; const transitions=[];
+    for(let i=0;i<allDates.length;i++){
+        let best=-Infinity; players.forEach(pl=>{ const v=pl.ret[i]; if(v!=null&&v>best) best=v; });
+        if(best===-Infinity) continue;
+        const top=players.filter(pl=>pl.ret[i]!=null&&Math.abs(pl.ret[i]-best)<1e-9).map(pl=>pl.name);
+        let leader = incumbent && top.includes(incumbent) ? incumbent : top[0];
+        if(!leader) continue;
+        if(leader!==incumbent){ transitions.push({date:allDates[i],from:incumbent,to:leader}); gains[leader]=(gains[leader]||0)+1; incumbent=leader; curStreak=1; }
+        else curStreak++;
+        counts[leader]=(counts[leader]||0)+1; longest[leader]=Math.max(longest[leader]||0,curStreak); totalDays++;
+    }
+    return {counts,longest,gains,incumbent,curStreak,transitions,totalDays};
+}
+function renderAdvThrone(body){
+    if(!advData || !advData.players.length){ body.innerHTML=advSkeletonHTML(); return; }
+    const t=computeThrone();
+    const kingColor=t.incumbent?(advData.players.find(p=>p.name===t.incumbent)?.color||'#fbbf24'):'#fbbf24';
+    const hero=t.incumbent?`<div class="throne-hero"><div class="throne-crown">👑</div><div class="font-bold text-white" style="font-size:20px;"><span class="stats-dot" style="display:inline-block;background:${kingColor};box-shadow:0 0 8px ${kingColor}66;margin-right:6px;vertical-align:middle;"></span>${esc(t.incumbent)}</div><div class="text-xs" style="color:var(--accent-amber);">現任王者 · 已連霸 <span class="mono font-bold">${t.curStreak}</span> 個交易日</div></div>`:`<div class="throne-hero"><div class="throne-crown">👑</div><div class="text-slate-400 text-sm">王座虛位以待</div></div>`;
+    const rows=advData.players.slice().sort((a,b)=>(t.counts[b.name]||0)-(t.counts[a.name]||0)).map(pl=>{
+        const days=t.counts[pl.name]||0, pct=t.totalDays>0?days/t.totalDays*100:0;
+        return `<div class="throne-row"><span class="stats-dot" style="background:${pl.color};box-shadow:0 0 8px ${pl.color}66;"></span><span class="font-bold text-white" style="font-size:13px;min-width:5.5em;">${esc(pl.name)}${pl.name===t.incumbent?' 👑':''}</span><div class="throne-bar-wrap"><div class="throne-bar" style="width:${pct.toFixed(1)}%;background:${pl.color};box-shadow:0 0 8px ${pl.color}55;"></div></div><span class="mono text-white font-bold" style="font-size:13px;min-width:3.2em;text-align:right;">${days} 天</span><span class="mono" style="font-size:11px;color:var(--text-muted);min-width:6.5em;text-align:right;">連霸最長 ${t.longest[pl.name]||0} 天 · 登基 ${t.gains[pl.name]||0} 次</span></div>`;
+    }).join('');
+    const tl=t.transitions.slice().reverse().slice(0,12).map(tr=>`<div class="throne-tl-item"><span class="mono" style="color:var(--accent-amber);min-width:3.6em;">${fmtMD(tr.date)}</span><span><span style="color:${advData.players.find(p=>p.name===tr.to)?.color||'#fbbf24'};font-weight:700;">${esc(tr.to)}</span>${tr.from?` 從 <span style="color:var(--text-muted);">${esc(tr.from)}</span> 手中奪下王座`:' 率先登上王座'}</span></div>`).join('');
+    body.innerHTML=`${hero}<div style="margin-bottom:14px;">${rows}</div><div class="stats-heatmap-title">王座易主時間軸（共 ${t.transitions.length} 次 · 統計 ${t.totalDays} 個交易日）</div><div class="throne-timeline" style="margin-top:7px;">${tl||'<div class="text-slate-500 text-xs px-2 py-2">尚無紀錄</div>'}</div>`;
+}
+function renderAdvClash(body){
+    const map={};
+    participants.forEach(p=>(Array.isArray(p.stocks)?p.stocks:[]).forEach(s=>{
+        if(!s.ticker) return;
+        const sess=s.session||'', price=(sess==='🌙 夜盤'&&s.prePrice)?s.prePrice:(sess==='🌆 盤後'&&s.postPrice)?s.postPrice:(s.currentPrice||0);
+        const cost=parseFloat(s.buyPrice)||0, shares=parseFloat(s.shares)||0;
+        if(shares<=0||cost<=0) return;
+        const key=String(s.ticker).toUpperCase();
+        if(!map[key]) map[key]={name:s.stockName||'',cur:getStockCurrency(s.ticker),rows:[]};
+        if(s.stockName) map[key].name=s.stockName;
+        map[key].rows.push({player:p.name,cost,shares,price,retPct:price>0?(price/cost-1)*100:0});
+    }));
+    const duels=Object.entries(map).filter(([,v])=>v.rows.length>=2);
+    if(!duels.length){ body.innerHTML=`<div class="text-center py-12"><div style="font-size:34px;margin-bottom:8px;">-</div><div class="text-slate-400 text-sm">目前沒有人持有相同股票</div></div>`; return; }
+    body.innerHTML=`<div style="display:grid;grid-template-columns:1fr;gap:12px;">${duels.map(([ticker,d])=>{
+        const rows=d.rows.slice().sort((a,b)=>b.retPct-a.retPct), best=rows[0].retPct, maxAbs=Math.max(1e-9,...rows.map(r=>Math.abs(r.retPct))), minCost=Math.min(...rows.map(r=>r.cost));
+        return `<div class="duel-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;"><div style="display:flex;align-items:center;gap:8px;"><span class="duel-vs">對決中</span><span class="font-bold text-white mono" style="font-size:14px;">${esc(ticker)}</span>${d.name?`<span style="font-size:11px;color:var(--text-muted);">${esc(d.name)}</span>`:''}</div><span class="mono" style="font-size:11px;color:var(--text-secondary);">現價 ${fmtRaw(rows[0].price,d.cur,2)}</span></div>${rows.map(r=>{ const color=advData?.players.find(p=>p.name===r.player)?.color||getPlayerColor(r.player,'#a855f7'), isWin=Math.abs(r.retPct-best)<1e-9, pos=r.retPct>=0; return `<div class="duel-row ${isWin?'winner':''}"><span class="stats-dot" style="background:${color};box-shadow:0 0 8px ${color}66;"></span><span class="font-bold text-white" style="font-size:12px;min-width:5em;">${esc(r.player)}${isWin?' 👑':''}</span><span class="mono" style="font-size:11px;color:var(--text-secondary);min-width:7.5em;">成本 ${fmtRaw(r.cost,d.cur,2)}${Math.abs(r.cost-minCost)<1e-9?' 💎':''}</span><div class="duel-bar-wrap"><div class="duel-bar" style="width:${Math.min(100,Math.abs(r.retPct)/maxAbs*100).toFixed(1)}%;background:${pos?'var(--accent-green)':'var(--accent-red)'};"></div></div><span class="mono font-bold ${pos?'text-emerald-400':'text-red-400'}" style="font-size:12px;min-width:4.6em;text-align:right;">${pos?'+':''}${r.retPct.toFixed(2)}%</span></div>`; }).join('')}</div>`;
+    }).join('')}</div>`;
+}
+function renderAdvUnderwater(body){
+    if(!advData || !advData.players.length){ body.innerHTML=advSkeletonHTML(); return; }
+    const labels=advData.allDates.map(date=>{const [,m,d]=date.split('-'); return `${parseInt(m,10)}/${parseInt(d,10)}`;});
+    const datasets=advData.players.map(pl=>{ let peak=-Infinity; return { label:pl.name, data:pl.nav.map(v=>{ if(v==null||isNaN(v)) return null; if(v>peak) peak=v; return peak>0?(v/peak-1)*100:0; }), borderColor:pl.color, backgroundColor:pl.color+'22', borderWidth:2, tension:.25, pointRadius:0, pointHoverRadius:5, spanGaps:true, fill:'origin' }; });
+    let canvas=document.getElementById('adv-underwater-canvas');
+    if(canvas&&advUnderwaterChart){ advUnderwaterChart.data.labels=labels; advUnderwaterChart.data.datasets=datasets; advUnderwaterChart.update('none'); return; }
+    body.innerHTML=`<div style="height:300px;position:relative;"><canvas id="adv-underwater-canvas"></canvas></div><div class="text-xs text-center mt-3" style="color:var(--text-muted);">0% = 處於歷史新高 · 曲線越深代表回撤越大</div>`;
+    requestAnimationFrame(()=>{ const cv=document.getElementById('adv-underwater-canvas'); if(!cv) return; if(advUnderwaterChart){try{advUnderwaterChart.destroy();}catch(e){}} advUnderwaterChart=new Chart(cv.getContext('2d'),{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#e8f4fd',usePointStyle:true,padding:12,font:{size:11,family:'Inter'}}}},scales:{x:{ticks:{color:'#7ba5cc',font:{size:10},maxRotation:0,autoSkipPadding:20},grid:{color:'rgba(31,31,36,.3)'}},y:{max:.5,ticks:{color:'#7ba5cc',font:{size:10},callback:v=>v.toFixed(1)+'%'},grid:{color:'rgba(31,31,36,.3)'}}}}}); });
+}
+function renderAdvRisk(body){
+    if(!advData || !advData.players.length){ body.innerHTML=advSkeletonHTML(); return; }
+    body.innerHTML=`<div class="grid grid-cols-1 md:grid-cols-3 gap-5">${advData.players.map(pl=>{
+        const r=[]; for(let i=1;i<pl.ret.length;i++){ const a=pl.ret[i-1], b=pl.ret[i]; if(a!=null&&b!=null) r.push((b-a)/100); }
+        const n=r.length; let annVol=null, sharpe=null, sortino=null, annRet=null;
+        if(n>=2){ const mean=r.reduce((s,v)=>s+v,0)/n; const sd=Math.sqrt(r.reduce((s,v)=>s+(v-mean)*(v-mean),0)/(n-1)); const dn=r.map(v=>Math.min(0,v)); const dsd=Math.sqrt(dn.reduce((s,v)=>s+v*v,0)/(n-1)); annVol=sd*Math.sqrt(252)*100; sharpe=sd>0?mean/sd*Math.sqrt(252):(mean>0?Infinity:null); sortino=dsd>0?mean/dsd*Math.sqrt(252):(mean>0?Infinity:null); const last=pl.ret[pl.ret.length-1]; if(last!=null) annRet=(Math.pow(1+last/100,252/n)-1)*100; }
+        const fmtRatio=v=>v==null?'--':(v===Infinity?'∞':v.toFixed(2)); const cls=v=>v==null?'text-slate-400':(v===Infinity||v>=1?'text-emerald-400':(v>=0?'text-amber-400':'text-red-400'));
+        return `<div class="stats-card"><div class="stats-card-head"><span class="stats-dot" style="background:${pl.color};box-shadow:0 0 8px ${pl.color}66;"></span><span class="font-bold text-white">${esc(pl.name)}</span><span style="font-size:10px;color:var(--text-muted);margin-left:auto;">樣本 ${n} 天</span></div><div class="stats-grid"><div class="stats-item"><div class="stats-label">夏普值</div><div class="stats-val mono ${cls(sharpe)}">${fmtRatio(sharpe)}</div><div class="stats-sub">TWR日報酬估算</div></div><div class="stats-item"><div class="stats-label">Sortino</div><div class="stats-val mono ${cls(sortino)}">${fmtRatio(sortino)}</div><div class="stats-sub">只計下跌波動</div></div><div class="stats-item"><div class="stats-label">年化波動率</div><div class="stats-val mono ${annVol==null?'text-slate-400':'text-white'}">${annVol==null?'--':annVol.toFixed(1)+'%'}</div><div class="stats-sub">日波動 × √252</div></div><div class="stats-item"><div class="stats-label">年化報酬</div><div class="stats-val mono ${annRet==null?'text-slate-400':(annRet>=0?'text-emerald-400':'text-red-400')}">${annRet==null?'--':(annRet>=0?'+':'')+annRet.toFixed(1)+'%'}</div><div class="stats-sub">以目前TWR外推</div></div></div></div>`;
+    }).join('')}</div><div class="text-xs mt-3" style="color:var(--text-muted);">比賽初期樣本少，年化數字只供參考。</div>`;
+}
+function stopAdvReplay(){ if(advReplayTimer){clearInterval(advReplayTimer); advReplayTimer=null;} const btn=document.getElementById('adv-replay-btn'); if(btn) btn.innerHTML='▶ 播放'; }
+function renderAdvReplay(body, switched){
+    if(!advData || !advData.players.length){ body.innerHTML=advSkeletonHTML(); return; }
+    const len=advData.allDates.length, existing=document.getElementById('adv-replay-canvas');
+    if(existing&&advReplayChart&&!switched){ advReplayIdx=Math.min(advReplayIdx,len-1); setAdvReplayIdx(advReplayIdx); return; }
+    body.innerHTML=`<div class="replay-controls"><button id="adv-replay-btn" class="btn-replay" onclick="toggleAdvReplay()">▶ 播放</button><input type="range" id="adv-replay-slider" class="replay-slider" min="0" max="${len-1}" value="${len-1}" oninput="advReplayUserActive=true; stopAdvReplay(); setAdvReplayIdx(parseInt(this.value,10));"><span class="mono font-bold text-white" id="adv-replay-date" style="font-size:13px;min-width:6em;text-align:right;"></span></div><div style="height:280px;position:relative;"><canvas id="adv-replay-canvas"></canvas></div><div class="replay-standings" id="adv-replay-standings"></div>`;
+    advReplayIdx=len-1;
+    requestAnimationFrame(()=>{ const cv=document.getElementById('adv-replay-canvas'); if(!cv) return; if(advReplayChart){try{advReplayChart.destroy();}catch(e){}} const labels=advData.allDates.map(date=>{const [,m,d]=date.split('-');return `${parseInt(m,10)}/${parseInt(d,10)}`;}); const datasets=advData.players.map(pl=>({label:pl.name,data:pl.ret.slice(),borderColor:pl.color,backgroundColor:pl.color+'18',borderWidth:2.5,tension:.25,pointRadius:0,pointHoverRadius:4,spanGaps:true,fill:false})); let yMin=0,yMax=0; advData.players.forEach(pl=>pl.ret.forEach(v=>{if(v!=null){if(v<yMin)yMin=v;if(v>yMax)yMax=v;}})); const pad=Math.max(.5,(yMax-yMin)*.1); advReplayChart=new Chart(cv.getContext('2d'),{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{labels:{color:'#e8f4fd',usePointStyle:true,padding:12,font:{size:11,family:'Inter'}}}},scales:{x:{ticks:{color:'#7ba5cc',font:{size:10},maxRotation:0,autoSkipPadding:20},grid:{color:'rgba(31,31,36,.3)'}},y:{min:Math.floor((yMin-pad)*10)/10,max:Math.ceil((yMax+pad)*10)/10,ticks:{color:'#7ba5cc',font:{size:10},callback:v=>(v>=0?'+':'')+v.toFixed(1)+'%'},grid:{color:'rgba(31,31,36,.3)'}}}}}); setAdvReplayIdx(len-1); });
+}
+function setAdvReplayIdx(i){
+    if(!advData||!advReplayChart) return;
+    const len=advData.allDates.length; advReplayIdx=Math.max(0,Math.min(i,len-1));
+    advData.players.forEach((pl,di)=>{ if(advReplayChart.data.datasets[di]) advReplayChart.data.datasets[di].data=pl.ret.map((v,j)=>j<=advReplayIdx?v:null); });
+    advReplayChart.update('none');
+    const slider=document.getElementById('adv-replay-slider'); if(slider&&parseInt(slider.value,10)!==advReplayIdx) slider.value=String(advReplayIdx);
+    const dateEl=document.getElementById('adv-replay-date'); if(dateEl) dateEl.textContent=advData.allDates[advReplayIdx]||'';
+    const stEl=document.getElementById('adv-replay-standings'); if(stEl){ const standing=advData.players.map(pl=>({name:pl.name,color:pl.color,v:pl.ret[advReplayIdx]})).filter(x=>x.v!=null).sort((a,b)=>b.v-a.v); const medals2=['🥇','🥈','🥉']; stEl.innerHTML=standing.map((s,i)=>`<span class="mini-rank-item">${medals2[i]||((i+1)+'.')} <span class="mini-rank-name" style="color:${s.color};">${esc(shortPlayerName(s.name))}</span><span class="mono font-bold ${s.v>=0?'text-emerald-400':'text-red-400'}">${s.v>=0?'+':''}${s.v.toFixed(2)}%</span></span>`).join(''); }
+}
+function toggleAdvReplay(){ advReplayUserActive=true; const btn=document.getElementById('adv-replay-btn'); if(advReplayTimer){stopAdvReplay();return;} if(!advData) return; const len=advData.allDates.length; if(advReplayIdx>=len-1) setAdvReplayIdx(0); if(btn) btn.innerHTML='⏸ 暫停'; advReplayTimer=setInterval(()=>{ if(!advData||advReplayIdx>=advData.allDates.length-1){stopAdvReplay();return;} setAdvReplayIdx(advReplayIdx+1); },110); }
+
+function buildProfitShareBarHTML(lb){
+    if(lb.length < 2) return '';
+    const topPlayers = lb.slice(0,3);
+    const totalProfit = topPlayers.reduce((sum,d)=>sum+Math.max(0,d.netProfitTWD||0),0);
+    const legend = topPlayers.map(d=>{
+        const color=getPlayerColor(d.name,'#a855f7');
+        const profit=d.netProfitTWD||0;
+        const share=totalProfit>0?Math.max(0,profit)/totalProfit*100:0;
+        const cls=profit>=0?'text-emerald-400':'text-red-400';
+        return `<span class="gap-bar-legend-item" title="${esc(d.name)}"><span class="gap-bar-dot" style="background:${color};box-shadow:0 0 8px ${color}88;"></span><b style="color:${color};">${esc(shortPlayerName(d.name))}</b><span class="mono ${cls}">${profit>=0?'+':'-'}${fmtRaw(Math.abs(profit),'TWD')}</span><span class="mono" style="color:var(--text-muted);">${share.toFixed(1)}%</span></span>`;
+    }).join('');
+    if(totalProfit<=0){
+        return `<div class="gap-bar-wrap"><div class="gap-bar-top"><span>佔比條｜三位玩家淨盈利佔比</span><span class="mono" style="color:var(--text-muted);">目前尚無正淨盈利</span></div><div class="gap-bar-track"></div><div class="gap-bar-legend">${legend}</div></div>`;
+    }
+    const segments = topPlayers.map(d=>{
+        const color=getPlayerColor(d.name,'#a855f7');
+        const share=Math.max(0,d.netProfitTWD||0)/totalProfit*100;
+        return `<div title="${esc(d.name)} ${share.toFixed(1)}%" style="width:${share.toFixed(2)}%;background:linear-gradient(90deg,${hexA(color,'aa')},${color});"></div>`;
+    }).join('');
+    return `<div class="gap-bar-wrap"><div class="gap-bar-top"><span>佔比條｜三位玩家淨盈利佔比 <span style="color:var(--text-muted);">（淨值－累積入金）</span></span><span class="mono" style="color:var(--text-primary);font-weight:700;">總正淨盈利 ${fmtRaw(totalProfit,'TWD')}</span></div><div class="gap-bar-track">${segments}</div><div class="gap-bar-legend">${legend}</div></div>`;
+}
+const lastLiveValues = {};
+function markLiveValue(key, value, html){
+    const prev=lastLiveValues[key];
+    lastLiveValues[key]=value;
+    const changed=prev!==undefined && String(prev)!==String(value);
+    return `<span class="${changed?'live-flip':''}" data-live-key="${esc(key)}">${html}</span>`;
+}
+let miniBarObserverInit=false;
+function ensureMiniBarObserver(){
+    if(miniBarObserverInit) return;
+    const target=document.getElementById('leaderboard');
+    const bar=document.getElementById('mini-rankbar');
+    if(!target || !bar || !('IntersectionObserver' in window)) return;
+    miniBarObserverInit=true;
+    new IntersectionObserver(entries=>{
+        entries.forEach(en=>bar.classList.toggle('show', !en.isIntersecting && en.boundingClientRect.top < 0));
+    }, {threshold:0}).observe(target);
+}
+function updateMiniRankbar(lb){
+    const inner=document.getElementById('mini-rankbar-inner');
+    if(!inner) return;
+    const medals3=['👑','🥈','🥉'];
+    inner.innerHTML=lb.map((d,i)=>{
+        const pos=parseFloat(d.returnPct)>=0;
+        const color=getPlayerColor(d.name,'#a855f7');
+        return `<span class="mini-rank-item">${medals3[i]||((i+1)+'.')}<span class="stats-dot" style="width:8px;height:8px;background:${color};"></span><span class="mini-rank-name">${esc(shortPlayerName(d.name))}</span><span class="mono font-bold ${pos?'text-emerald-400':'text-red-400'}">${pos?'+':''}${d.returnPct}%</span></span>`;
+    }).join('');
+    ensureMiniBarObserver();
+}
+function checkNavHighs(){
+    if(!advData) return;
+    const todayStr=getTaipeiToday();
+    advData.players.forEach(pl=>{
+        const nav=pl.nav.filter(v=>v!=null&&!isNaN(v));
+        if(nav.length<5) return;
+        const liveNav=nav[nav.length-1], histPeak=Math.max(...nav.slice(0,-1));
+        const key='mimiNavPeakSeen_'+pl.name;
+        let prevSeen=NaN; try{prevSeen=parseFloat(localStorage.getItem(key));}catch(e){}
+        const basePeak=isFinite(prevSeen)?Math.max(prevSeen,histPeak):histPeak;
+        const isNewHigh=liveNav>basePeak*(1+1e-6)&&liveNav>(pl.totalDep||0);
+        if(isNewHigh&&isFinite(prevSeen)){
+            const dayKey='mimiConfettiDay_'+pl.name;
+            let fired=null; try{fired=localStorage.getItem(dayKey);}catch(e){}
+            if(fired!==todayStr){ try{localStorage.setItem(dayKey,todayStr);}catch(e){} fireConfetti(); showNavToast(`🎉 ${pl.name} 淨值創比賽新高！`); }
+        }
+        try{localStorage.setItem(key,String(Math.max(basePeak,liveNav)));}catch(e){}
+    });
+}
+function fireConfetti(){
+    let cv=document.getElementById('confetti-canvas'); if(cv) cv.remove();
+    cv=document.createElement('canvas'); cv.id='confetti-canvas'; document.body.appendChild(cv);
+    cv.width=window.innerWidth; cv.height=window.innerHeight;
+    const c=cv.getContext('2d'), colors=['#fbbf24','#22d3ee','#22c55e','#a855f7','#ef4444','#f5f5f7','#ec4899'];
+    const parts=Array.from({length:150},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*.35,w:5+Math.random()*6,h:8+Math.random()*8,vy:2.2+Math.random()*3.4,vx:-1.6+Math.random()*3.2,rot:Math.random()*Math.PI,vr:-.14+Math.random()*.28,col:colors[Math.floor(Math.random()*colors.length)]}));
+    const t0=performance.now();
+    (function frame(now){ if(!cv.isConnected) return; c.clearRect(0,0,cv.width,cv.height); const fade=Math.max(0,1-(now-t0)/4200); parts.forEach(pt=>{pt.x+=pt.vx;pt.y+=pt.vy;pt.rot+=pt.vr;c.save();c.translate(pt.x,pt.y);c.rotate(pt.rot);c.globalAlpha=fade;c.fillStyle=pt.col;c.fillRect(-pt.w/2,-pt.h/2,pt.w,pt.h);c.restore();}); if(now-t0<4400) requestAnimationFrame(frame); else cv.remove();})(t0);
+}
+function showNavToast(msg){
+    const t=document.createElement('div'); t.className='nav-toast'; t.textContent=msg; document.body.appendChild(t);
+    requestAnimationFrame(()=>t.classList.add('show'));
+    setTimeout(()=>{t.classList.remove('show'); setTimeout(()=>t.remove(),450);},4500);
+}
+function playerFillGradient(context, color){
+    const chart=context.chart;
+    const {ctx,chartArea}=chart;
+    if(!chartArea) return color+'12';
+    const g=ctx.createLinearGradient(0,chartArea.top,0,chartArea.bottom);
+    g.addColorStop(0,color+'30'); g.addColorStop(1,color+'00');
+    return g;
+}
+const crosshairPlugin = {
+    id:'crosshair',
+    afterDraw(chart){
+        const act=chart.tooltip&&chart.tooltip.getActiveElements?chart.tooltip.getActiveElements():[];
+        if(!act||!act.length) return;
+        const x=act[0].element.x, {top,bottom}=chart.chartArea, c=chart.ctx;
+        c.save(); c.beginPath(); c.setLineDash([4,4]); c.lineWidth=1; c.strokeStyle='rgba(34,211,238,.4)'; c.moveTo(x,top); c.lineTo(x,bottom); c.stroke(); c.restore();
+    }
+};
+function hexA(c,a){return /^#[0-9a-fA-F]{6}$/.test(c)?c+a:c;}
+function roundRectPath(c,x,y,w,h,r){
+    c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath();
+}
+const endpointLabelPlugin = {
+    id:'endpointLabels',
+    afterDatasetsDraw(chart){
+        const area=chart.chartArea; if(!area) return;
+        const c=chart.ctx, items=[];
+        chart.data.datasets.forEach((ds,i)=>{
+            if(ds.borderDash&&ds.borderDash.length) return;
+            if(!chart.isDatasetVisible(i)) return;
+            let idx=-1; for(let j=ds.data.length-1;j>=0;j--){ if(ds.data[j]!=null){idx=j;break;} }
+            if(idx<0) return;
+            const el=chart.getDatasetMeta(i).data[idx]; if(!el) return;
+            const color=(typeof ds.borderColor==='string')?ds.borderColor:'#fff';
+            items.push({x:el.x,y:el.y,label:shortPlayerName(ds.label),color});
+        });
+        if(!items.length) return;
+        items.sort((a,b)=>a.y-b.y);
+        for(let i=1;i<items.length;i++){ if(items[i].y-items[i-1].y<16) items[i].y=items[i-1].y+16; }
+        c.save(); c.font='700 10px Inter, sans-serif';
+        const labelX=area.right+12;
+        items.forEach(it=>{
+            const py=Math.min(Math.max(it.y,area.top+8),area.bottom-8);
+            c.shadowColor=it.color; c.shadowBlur=9; c.fillStyle=it.color; c.beginPath(); c.arc(it.x,it.y,3.5,0,Math.PI*2); c.fill(); c.shadowBlur=0;
+            c.strokeStyle=hexA(it.color,'88'); c.lineWidth=1; c.beginPath(); c.moveTo(it.x+5,it.y); c.lineTo(labelX-8,py); c.stroke();
+            const w=c.measureText(it.label).width, lx=labelX;
+            roundRectPath(c,lx-5,py-9,w+10,18,6); c.fillStyle='rgba(8,8,10,.88)'; c.fill(); c.strokeStyle=hexA(it.color,'66'); c.stroke(); c.fillStyle=it.color; c.fillText(it.label,lx,py+3.5);
+        });
+        c.restore();
+    }
+};
+function advSkeletonHTML(){
+    return `<div style="display:flex;flex-direction:column;gap:10px;"><div class="skeleton" style="height:88px;"></div><div class="skeleton" style="height:42px;"></div><div class="skeleton" style="height:42px;"></div><div class="skeleton" style="height:42px;"></div></div>`;
 }
 
 // ── 監聽 dailySnapshots ───────────────────
@@ -1948,6 +2435,8 @@ function renderDashboard(){
         const netVal=totalDep+realPnl+totalUnPnl;
         const valTWD=p.currency==='USD'?netVal*usdToTwd:netVal;
         const valUSD=p.currency==='TWD'?netVal/usdToTwd:netVal;
+        const totalDepTWD=p.currency==='USD'?totalDep*usdToTwd:totalDep;
+        const netProfitTWD=valTWD-totalDepTWD;
 
         // ── 今日變動 (相較昨日淨值) ────────────────
         // 昨日 = 賽程日期列表中最後一個 < 今日的日期
@@ -1990,6 +2479,7 @@ function renderDashboard(){
             totalValueUSD:valUSD,
             returnPct:retPct,
             netVal,
+            netProfitTWD,
             currency:p.currency,
             initCapStr:fmtRaw(totalDep,p.currency),
             netValueStr:fmtRaw(netVal,p.currency),
@@ -2334,6 +2824,7 @@ function renderDashboard(){
             </div>` : '';
 
         pdiv.innerHTML+=`<div class="portfolio-card">
+            <div class="pcard-accent" style="background:linear-gradient(90deg,${getPlayerColor(p.name,'#3b82f6')},transparent 70%);"></div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
                 <div style="display:flex;align-items:center;gap:6px;">
                     <button onclick="openColorPicker('player','${p.name}','${getPlayerColor(p.name,'#a855f7')}')" 
@@ -2346,17 +2837,17 @@ function renderDashboard(){
             </div>
             <div class="net-value-box" style="margin-bottom:16px;">
                 <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">帳戶淨值</div>
-                <div class="text-3xl">${fmtC(netVal,p.currency,true)}</div>
-                <div class="text-xs mono font-semibold ${parseFloat(retPct)>=0?'text-emerald-400':'text-red-400'}" style="margin-top:6px;">${parseFloat(retPct)>=0?'▲':'▼'} ${retPct}%（相對累積入金）</div>
+                <div class="text-3xl">${markLiveValue(`mimi-card-${p.name}-net`, netVal.toFixed(2), fmtC(netVal,p.currency,true))}</div>
+                <div class="text-xs mono font-semibold ${parseFloat(retPct)>=0?'text-emerald-400':'text-red-400'}" style="margin-top:6px;">${markLiveValue(`mimi-card-${p.name}-ret`, retPct, `${parseFloat(retPct)>=0?'▲':'▼'} ${retPct}%（相對累積入金）`)}</div>
             </div>
             <div class="space-y-1" style="margin-bottom:16px;">
                 <div class="stat-row"><span class="stat-label">累積入金 <span style="color:var(--text-muted);font-size:10px;">(${getDeposits(p).length} 筆)</span></span><span class="mono font-bold text-amber-300 text-xs">${fmtRaw(totalDep,p.currency)}</span></div>
                 <div class="stat-row"><span class="stat-label">持有現金</span>${fmtC(autoCash,p.currency,true)}</div>
                 <div class="stat-row"><span class="stat-label">持股總市值</span>${fmtC(totalMV,p.currency,true)}</div>
-                <div class="stat-row"><span class="stat-label">當前淨值（現金+持股）</span><span class="mono font-bold text-cyan-400 text-sm">${fmtRaw(currentVal,p.currency)}</span></div>
+                <div class="stat-row"><span class="stat-label">當前淨值（現金+持股）</span><span class="mono font-bold text-cyan-400 text-sm">${markLiveValue(`mimi-card-${p.name}-current`, currentVal.toFixed(2), fmtRaw(currentVal,p.currency))}</span></div>
                 <div class="stat-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(31,31,36,.6);">
                     <span class="stat-label">可使用最高槓桿金額 <span style="color:var(--text-muted);font-size:10px;">(淨值×60%)</span></span>
-                    <span class="mono font-bold text-amber-300 text-sm">${fmtRaw(maxLeverage,p.currency)}</span>
+                    <span class="mono font-bold text-amber-300 text-sm">${markLiveValue(`mimi-card-${p.name}-maxlev`, maxLeverage.toFixed(2), fmtRaw(maxLeverage,p.currency))}</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">槓桿使用率 <span style="color:var(--text-muted);font-size:10px;">(現金水位/淨值)</span></span>
@@ -2365,8 +2856,8 @@ function renderDashboard(){
                     </span>
                 </div>
                 ${hasLev?`<div class="leverage-bar-wrap"><div class="leverage-bar" style="width:${Math.min(usagePct,100).toFixed(0)}%"></div></div>`:''}
-                <div class="stat-row" style="margin-top:4px;"><span class="stat-label">已實現損益</span><span class="${realCls}">${realSign}${fmtRaw(Math.abs(realPnl),p.currency)}</span></div>
-                <div class="stat-row"><span class="stat-label">未實現損益（所有持股）</span><span class="font-bold mono ${upCls}">${upSign}${fmtRaw(totalUnPnl,p.currency)}</span></div>
+                <div class="stat-row" style="margin-top:4px;"><span class="stat-label">已實現損益</span><span class="${realCls}">${markLiveValue(`mimi-card-${p.name}-real`, realPnl.toFixed(2), `${realSign}${fmtRaw(Math.abs(realPnl),p.currency)}`)}</span></div>
+                <div class="stat-row"><span class="stat-label">未實現損益（所有持股）</span><span class="font-bold mono ${upCls}">${markLiveValue(`mimi-card-${p.name}-unreal`, totalUnPnl.toFixed(2), `${upSign}${fmtRaw(totalUnPnl,p.currency)}`)}</span></div>
                 
                 <div class="stat-row" style="margin-top:4px; padding-top:4px; border-top:1px solid rgba(31,31,36,.6);"><span class="stat-label">交易成本 <span style="color:var(--text-muted);font-size:10px;">(手續費+證交稅+利息)</span></span><span class="mono text-slate-400">${totalFeeTax > 0 ? '-' : ''}${fmtRaw(totalFeeTax, p.currency)}</span></div>
             </div>
@@ -2399,22 +2890,25 @@ function renderDashboard(){
         const dailyAbsPct = Math.abs(d.dailyChangePct).toFixed(2);
         // 今日變動: 以該玩家的記帳幣別顯示
         const dailyDisplay = d.dailyChange !== 0
-            ? `<span class="mono font-semibold" style="color:${dailyColor};">${dailySign}${fmtRaw(dailyAbsAmt, d.currency)} (${dailySign}${dailyAbsPct}%)</span>`
-            : `<span class="mono" style="color:var(--text-muted);">--</span>`;
+            ? markLiveValue(`mimi-lb-${d.name}-daily`, `${d.dailyChange.toFixed(4)}|${dailyAbsPct}`, `<span class="mono font-semibold" style="color:${dailyColor};">${dailySign}${fmtRaw(dailyAbsAmt, d.currency)} (${dailySign}${dailyAbsPct}%)</span>`)
+            : markLiveValue(`mimi-lb-${d.name}-daily`, '--', `<span class="mono" style="color:var(--text-muted);">--</span>`);
         // 淨值雙幣別顯示
         const dualValHTML = `
-            <div class="mono font-bold text-white" style="font-size:14px;line-height:1.2;">${fmtRaw(d.totalValueTWD,'TWD')}</div>
-            <div class="mono" style="font-size:11px;color:var(--text-muted);line-height:1.3;">≈ ${fmtRaw(d.totalValueUSD,'USD',2)}</div>
+            <div class="mono font-bold text-white" style="font-size:14px;line-height:1.2;">${markLiveValue(`mimi-lb-${d.name}-twd`, d.totalValueTWD.toFixed(0), fmtRaw(d.totalValueTWD,'TWD'))}</div>
+            <div class="mono" style="font-size:11px;color:var(--text-muted);line-height:1.3;">≈ ${markLiveValue(`mimi-lb-${d.name}-usd`, d.totalValueUSD.toFixed(2), fmtRaw(d.totalValueUSD,'USD',2))}</div>
         `;
+        const rankDisplayName = shortPlayerName(d.name);
+        const returnPctHTML = markLiveValue(`mimi-lb-${d.name}-ret`, d.returnPct, `${pos?'+':''}${d.returnPct}%`);
         lbDiv.innerHTML += `<div class="rank-card rank-${idx+1}" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span class="player-strip" style="background:${getPlayerColor(d.name,'#3b82f6')};box-shadow:0 0 8px ${getPlayerColor(d.name,'#3b82f6')}88;"></span>
             <div style="display:flex;align-items:center;gap:12px;flex:0 0 auto;">
-                <span style="font-size:1.6rem;">${medals[idx]||(idx+1)+'.'}</span>
-                <span class="font-bold text-lg text-white">${d.name}</span>
+                <span class="rank-medal" style="font-size:1.6rem;">${medals[idx]||(idx+1)+'.'}</span>
+                <span class="font-bold text-white" title="${esc(d.name)}" style="font-size:1.125rem;white-space:nowrap;">${esc(rankDisplayName)}</span>
             </div>
             <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end;">
                 <div style="display:flex;flex-direction:column;align-items:flex-end;min-width:0;">
                     <div style="font-size:10px;color:var(--text-muted);letter-spacing:.05em;">績效</div>
-                    <div class="mono font-bold ${pos?'text-emerald-400':'text-red-400'}" style="font-size:14px;">${pos?'+':''}${d.returnPct}%</div>
+                    <div class="mono font-bold ${pos?'text-emerald-400':'text-red-400'}" style="font-size:14px;">${returnPctHTML}</div>
                 </div>
                 <div style="display:flex;flex-direction:column;align-items:flex-end;min-width:0;">
                     <div style="font-size:10px;color:var(--text-muted);letter-spacing:.05em;">今日</div>
@@ -2424,6 +2918,8 @@ function renderDashboard(){
             </div>
         </div>`;
     });
+    lbDiv.innerHTML += buildProfitShareBarHTML(lb);
+    updateMiniRankbar(lb);
     // 同時刷新大盤對照
     renderBenchmarks();
 
