@@ -1373,8 +1373,19 @@ const COLOR_PALETTE = [
 // 色彩偏好 (Firebase 同步, 所有人共用)
 let emptyChartColors = { players:{}, indices:{} };
 
+// 字串穩定雜湊 → 用於「未自訂顏色」時, 依名稱決定固定色
+// (不再用陣列順序 idx, 避免新增/刪除玩家或重新排序時顏色亂跳)
+function hashString(str){
+    let h = 0; const s = String(str || '');
+    for(let i = 0; i < s.length; i++){ h = (h * 31 + s.charCodeAt(i)) | 0; }
+    return Math.abs(h);
+}
+
 function getPlayerColor(name, fallback){
-    return (emptyChartColors.players && emptyChartColors.players[name]) || fallback || '#a855f7';
+    const saved = emptyChartColors.players && emptyChartColors.players[name];
+    if(saved) return saved;
+    // 無自訂色 → 依名稱雜湊取穩定調色盤色 (所有 UI 元件同色, 不隨順序漂移)
+    return COLOR_PALETTE[hashString(name) % COLOR_PALETTE.length] || fallback || '#a855f7';
 }
 function getIndexColor(key, fallback){
     return (emptyChartColors.indices && emptyChartColors.indices[key]) || fallback || '#3b82f6';
@@ -3011,13 +3022,13 @@ function isTaiwanStock(ticker){
 }
 
 // ── 玩家手續費規則表 ───────────────────────
-// 玩家一 (index 0): 無交易手續費
-// 玩家二 (index 1): 台股 5 折、美股每筆 0.1% (元大)
+// 玩家一 (index 0): 台股 2.8 折、美股每筆 0.08% (國泰)
+// 玩家二 (index 1): 無交易手續費
 // 玩家三 (index 2): 台股 2.8 折、美股每筆 0.08% (國泰)
 function getPlayerFeeProfile(playerIndex){
     const profiles = [
+        { twDiscount: 2.8,  usRate: 0.0008, brokerLabel: '國泰 2.8 折 / 0.08%', usLabel: '（國泰每筆 0.08%）' },
         { twDiscount: null, usRate: 0,      brokerLabel: '無手續費',           usLabel: '' },
-        { twDiscount: 5,    usRate: 0.001,  brokerLabel: '元大 5 折 / 0.1%',   usLabel: '（元大每筆 0.1%）' },
         { twDiscount: 2.8,  usRate: 0.0008, brokerLabel: '國泰 2.8 折 / 0.08%', usLabel: '（國泰每筆 0.08%）' }
     ];
     return profiles[playerIndex] || profiles[0];
@@ -3069,7 +3080,9 @@ function fmtMD(s){
 
 async function fetchStockPrice(ticker){
     if(!ticker)return null;
-    if(ticker.endsWith('.TW')||ticker.endsWith('.TWO')){
+    // 台股一律走 Fugle/TWSE: 含 .TW/.TWO 後綴, 以及純數字代號(例:6451 未帶後綴)
+    // fetchTWSEPrice 內部會剝後綴並以裸代號查詢, 故裸代號也能正確取價
+    if(isTaiwanStock(ticker)){
         return await fetchTWSEPrice(ticker);
     }
     return fetchFinnhubPrice(ticker);
@@ -3424,6 +3437,20 @@ function renderBenchmarks(){
     updateMarketCountdown();
 }
 
+// ── 取得個股有效報價 ──────────────────────
+// 盤別優先(夜盤/盤後) → 即時價 currentPrice → 仍無有效報價時「回退買入價」(視為持平)
+// 目的: 抓不到價(例: 台股代號未帶後綴、API 失敗)時, 不該把市值當成 0,
+//        否則未實現損益 = -成本, 帳戶淨值會整個崩跌(顯示成只剩零頭)。
+function resolveStockPrice(s){
+    if(!s) return 0;
+    const sess = s.session || '';
+    let lp = (sess==='夜盤'&&s.prePrice) ? s.prePrice :
+             (sess==='盤後'&&s.postPrice) ? s.postPrice :
+             s.currentPrice || 0;
+    if(!(lp > 0)) lp = s.buyPrice || 0;
+    return lp;
+}
+
 // ── 計算參賽者當前淨值（記帳幣別） ────────
 function calcCurrentNetValue(p){
     const totalDep = getTotalDeposit(p);
@@ -3431,10 +3458,7 @@ function calcCurrentNetValue(p){
     const trades = Array.isArray(p.trades) ? p.trades : [];
     let totalUnPnl = 0;
     stocks.forEach(s=>{
-        const sess = s.session || '';
-        const lp = (sess==='夜盤'&&s.prePrice) ? s.prePrice :
-                   (sess==='盤後'&&s.postPrice) ? s.postPrice :
-                   s.currentPrice || 0;
+        const lp = resolveStockPrice(s);
         const sCur = getStockCurrency(s.ticker) || s.currency || p.currency;
         const unPnlRaw = (s.shares||0) * (lp - (s.buyPrice||0));
         totalUnPnl += convertCurrency(unPnlRaw, sCur, p.currency);
@@ -4873,10 +4897,7 @@ function renderDashboard(){
         const trades=Array.isArray(p.trades)?p.trades:[];
         let totalMV=0,totalUnPnl=0, totalCost=0;
         stocks.forEach(s=>{
-            const sess=s.session||'';
-            const latestPrice=(sess==='夜盤'&&s.prePrice)?s.prePrice:
-                              (sess==='盤後'&&s.postPrice)?s.postPrice:
-                              s.currentPrice||0;
+            const latestPrice=resolveStockPrice(s);
             // 永遠以 ticker 為準, s.currency 僅作 fallback (舊資料相容)
             const sCur=getStockCurrency(s.ticker)||s.currency||p.currency;
             const mvRaw=(s.shares||0)*latestPrice;
@@ -4959,9 +4980,7 @@ function renderDashboard(){
             ?`<div class="holding-row text-center text-slate-500">目前無持股紀錄</div>`
             :stocks.map((s,si)=>{
                 const sess2=s.session||'';
-                const latestPrice=(sess2==='夜盤'&&s.prePrice)?s.prePrice:
-                                  (sess2==='盤後'&&s.postPrice)?s.postPrice:
-                                  s.currentPrice||0;
+                const latestPrice=resolveStockPrice(s);
                 const mv=(s.shares||0)*latestPrice;
                 const cost=(s.shares||0)*(s.buyPrice||0);
                 const pnl=mv-cost;
@@ -5479,6 +5498,18 @@ function editName(oldName){
     if(pi===-1) return;
     const updated = {...participants[pi], name: trimmed};
     db.ref('emptyCompetitionData/'+pi).set(updated);
+    // 同步搬移「以名稱為 key」的顏色偏好, 否則改名後顏色會掉回預設
+    try{
+        const savedColor = emptyChartColors.players && emptyChartColors.players[oldName];
+        if(savedColor){
+            db.ref('emptyChartColors/players/'+trimmed).set(savedColor);
+            db.ref('emptyChartColors/players/'+oldName).remove();
+            if(emptyChartColors.players){
+                emptyChartColors.players[trimmed] = savedColor;
+                delete emptyChartColors.players[oldName];
+            }
+        }
+    }catch(e){ console.warn('rename color migrate fail:', e); }
     setStatus('loading','更新名稱中...');
 }
 
@@ -7991,9 +8022,7 @@ function computeLiveStats(p, pIdx){
     const rows = [];
     stocks.forEach((s, si)=>{
         const sess2 = s.session||'';
-        const latestPrice = (sess2==='夜盤'&&s.prePrice)?s.prePrice:
-                            (sess2==='盤後'&&s.postPrice)?s.postPrice:
-                            s.currentPrice||0;
+        const latestPrice = resolveStockPrice(s);
         const sCur = getStockCurrency(s.ticker)||s.currency||p.currency;
         const mvN = (s.shares||0)*latestPrice;
         const costN = (s.shares||0)*(s.buyPrice||0);
