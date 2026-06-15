@@ -8504,37 +8504,3 @@ if(window.caches && caches.keys){
 </script>
 </body>
 </html>
-
-// sw.js — 自毀型 Service Worker
-// 用途: 讓「之前被舊版 PWA 快取卡住」的瀏覽器, 下次開啟時自動清除所有快取、
-//        解除 Service Worker 註冊, 並重新載入頁面 → 恢復成最新的網路版本。
-// 部署: 放在網站根目錄 (與 index.html 同層), 取代舊的 sw.js。
-
-self.addEventListener('install', () => {
-  // 立即跳過等待, 直接進入 activate
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
-    // 1) 刪除所有 Cache Storage 快取
-    try {
-      const keys = await caches.keys();
-      await Promise.all(keys.map((k) => caches.delete(k)));
-    } catch (e) {}
-    // 2) 解除自己的註冊
-    try {
-      await self.registration.unregister();
-    } catch (e) {}
-    // 3) 重新載入所有受控頁面 → 改由網路抓最新版
-    try {
-      const clients = await self.clients.matchAll({ type: 'window' });
-      clients.forEach((c) => {
-        try { c.navigate(c.url); } catch (e) {}
-      });
-    } catch (e) {}
-  })());
-});
-
-// 不攔截任何請求: 一律走網路, 不再提供任何快取
-self.addEventListener('fetch', () => {});
