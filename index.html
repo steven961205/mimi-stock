@@ -4554,6 +4554,20 @@ async function searchTickers(query){
             {symbol:`${code}.TWO`, shortname:`台股上櫃 ${code}`, exchDisp:'TPEx'},
         ];
     }
+    // 主來源：Yahoo Finance 搜尋（走既有 ?url= 通道，回傳欄位與本函式相同；同時涵蓋美股與國際代號）
+    try{
+        const yfUrl=`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=10&newsCount=0&listsCount=0&enableFuzzyQuery=false`;
+        const r=await fetch(`${CF_PROXY}?url=${encodeURIComponent(yfUrl)}`,{signal:AbortSignal.timeout(6000)});
+        if(r.ok){
+            const d=await r.json();
+            const quotes=(d?.quotes||[])
+                .filter(q=>q.symbol&&['EQUITY','ETF','MUTUALFUND','INDEX','ADR'].includes(q.quoteType))
+                .slice(0,8)
+                .map(q=>({symbol:q.symbol,shortname:q.shortname||q.longname||q.symbol,exchDisp:q.exchDisp||q.typeDisp||''}));
+            if(quotes.length)return quotes;
+        }
+    }catch(e){console.warn('Yahoo 搜尋失敗，改用 Finnhub 備援：',e?.message||e);}
+    // 備援：Finnhub 搜尋（免費方案有速率/權限限制，僅作後備）
     try{
         const r=await fetch(`${CF_PROXY}?api=finnhub&endpoint=search&q=${encodeURIComponent(query)}`,{signal:AbortSignal.timeout(5000)});
         const d=await r.json();
