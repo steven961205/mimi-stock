@@ -8488,18 +8488,11 @@ setInterval(()=>{
     updateMarketSessionIndicator();
 }, 1000);
 
-// ── 移除舊版 PWA Service Worker 與快取 ──
-// 之前部署過的 Service Worker 會攔截請求、回舊快取, 導致更新後仍看到舊版。
-// 這裡主動解除所有 SW 註冊並清空 Cache Storage, 確保一律抓最新網路版本。
+// ── PWA: 註冊 Service Worker (Network-First, 離線時 fallback 快取) ──
 if('serviceWorker' in navigator){
-    navigator.serviceWorker.getRegistrations()
-        .then(rs => rs.forEach(r => r.unregister()))
-        .catch(()=>{});
-}
-if(window.caches && caches.keys){
-    caches.keys()
-        .then(keys => keys.forEach(k => caches.delete(k)))
-        .catch(()=>{});
+    window.addEventListener('load', ()=>{
+        navigator.serviceWorker.register('sw.js?v='+encodeURIComponent(APP_VERSION)).catch(e=>console.warn('SW 註冊失敗:', e.message));
+    });
 }
 </script>
 </body>
