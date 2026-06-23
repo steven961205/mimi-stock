@@ -364,6 +364,38 @@
         .rank-card:hover{transform:translateY(-2px);}
         .btn-update,.btn-add-trade,.adv-arrow,.btn-replay{transition-property:all;}
         .btn-update:active,.btn-add-trade:active,.adv-arrow:active,.btn-replay:active,.tools-menu button:active{transform:scale(.95);}
+        .performance-chart-wrap{height:380px;position:relative;}
+        .performance-mobile-legend{display:none;}
+        .performance-mobile-legend button{font:inherit;}
+        /* ── What-if 續抱曲線切換鈕 ── */
+        .whatif-btn{display:inline-flex;align-items:center;justify-content:center;margin-left:6px;padding:4px 10px;border-radius:999px;
+            border:1px solid rgba(190,150,170,.28);background:rgba(190,150,170,.08);color:var(--text-secondary);
+            font-size:11px;font-weight:800;letter-spacing:.02em;cursor:pointer;transition:all .18s;white-space:nowrap;}
+        .whatif-btn:hover{color:var(--accent-cyan);border-color:rgba(190,150,170,.55);background:rgba(190,150,170,.14);}
+        .whatif-btn.active{color:#111;background:linear-gradient(135deg,var(--accent-cyan),#efe5d2);border-color:rgba(255,255,255,.38);
+            box-shadow:0 0 15px rgba(190,150,170,.25);}
+        .color-swatch{width:100%;aspect-ratio:1;border-radius:50%;border:1.5px solid rgba(255,255,255,.15);cursor:pointer;padding:0;transition:transform .12s,box-shadow .12s,border-color .12s;}
+        .color-swatch:hover{transform:scale(1.18);}
+        .color-swatch.current{border:3px solid #fff;box-shadow:0 0 0 2px currentColor,0 0 12px currentColor;}
+        .color-swatch.empty{background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.01));border-style:dashed;color:var(--text-muted);}
+        .color-swatch.empty::after{content:'+';font-weight:900;font-size:13px;color:var(--text-muted);}
+        .whatif-hint{display:none;font-size:11.5px;line-height:1.45;margin-bottom:10px;padding:12px;border-radius:14px;
+            border:1px solid rgba(190,150,170,.18);background:linear-gradient(180deg,rgba(190,150,170,.07),rgba(10,10,12,.45));color:var(--text-secondary);}
+        .whatif-hint.show{display:block;animation:advfade .3s ease;}
+        .wi-summary-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;}
+        .wi-summary-title{font-weight:900;color:#f2e9ec;letter-spacing:.02em;}
+        .wi-net-list{display:flex;flex-direction:column;gap:8px;}
+        .wi-net-row{display:grid;grid-template-columns:52px minmax(0,1fr);gap:9px;align-items:stretch;}
+        .wi-net-player{display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(255,255,255,.04);
+            border:1px solid color-mix(in srgb,var(--player-color) 45%,rgba(255,255,255,.12));color:var(--player-color);font-weight:900;font-size:13px;min-width:0;}
+        .wi-net-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0;}
+        .wi-net-cell{border:1px solid rgba(255,255,255,.08);background:rgba(5,5,7,.35);border-radius:10px;padding:8px 10px;min-width:0;}
+        .wi-net-cell.fly{border-color:rgba(34,197,94,.26);background:rgba(34,197,94,.065);}
+        .wi-net-cell.escape{border-color:rgba(239,68,68,.24);background:rgba(239,68,68,.055);}
+        .wi-net-label{display:flex;justify-content:space-between;gap:8px;color:var(--text-muted);font-size:10px;font-weight:800;margin-bottom:5px;min-width:0;}
+        .wi-net-label span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .wi-net-val{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .wi-net-sub{font-size:10.5px;color:var(--text-secondary);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         /* 工具下拉選單 */
         .tools-menu-wrap{position:relative;display:inline-block;}
         .tools-menu{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);display:none;flex-direction:column;gap:2px;
@@ -487,6 +519,11 @@
             .poker-player-name{font-size:18px;}
             .rank-move{font-size:10px;padding:1px 5px;margin-left:4px;}
             .nav-toast{font-size:12px;padding:8px 16px;max-width:92vw;white-space:normal;text-align:center;}
+            .performance-mobile-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin:5px 4px 12px;}
+            .performance-mobile-legend button{display:flex;align-items:center;gap:7px;min-width:0;background:transparent;border:0;color:#e8f4fd;padding:0;font-size:11px;font-weight:750;line-height:1.15;text-align:left;white-space:nowrap;}
+            .performance-mobile-legend button.is-hidden{opacity:.42;}
+            .performance-mobile-legend-dot{width:15px;height:15px;border-radius:50%;border:2px solid currentColor;box-shadow:0 0 8px color-mix(in srgb,currentColor 35%,transparent);flex:0 0 auto;}
+            .performance-mobile-legend-text{overflow:hidden;text-overflow:ellipsis;}
         }
         /* ── 價格新鮮度 ── */
         .holding-row.stale{opacity:.72;}
@@ -633,6 +670,12 @@
         .pager-btn.next{grid-column:2;grid-row:2;justify-self:stretch;}
         .pager-page{font-family:'JetBrains Mono','IBM Plex Mono',monospace;font-size:13px;font-weight:850;color:#fff;line-height:1.25;}
         .pager-total{font-size:10px;font-weight:700;color:var(--text-muted);line-height:1.35;}
+        .lz-sum-tabs{display:flex;gap:5px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.075);border-radius:11px;padding:4px;margin-bottom:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.025);}
+        .lz-sum-tabs .card-tab{flex:1;}
+        .lz-sec-title{margin:14px 0 8px;color:var(--text-secondary);font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;}
+        .stats-card .lz-sec-title:first-of-type,.lz-pane-perf .lz-sec-title:first-child{margin-top:2px;}
+        .lz-sec-cap{font-size:10px;color:var(--text-muted);margin:-2px 0 8px;}
+        .lz-perf-skel{padding:22px 12px;text-align:center;color:var(--text-muted);font-size:12px;border:1px dashed rgba(255,255,255,.09);border-radius:12px;background:rgba(255,255,255,.025);}
         .trend-badge{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;min-width:0;}
         .daily-change-value{justify-content:flex-end;white-space:normal;flex-wrap:wrap;line-height:1.45;text-align:right;max-width:190px;font-size:11px;}
         .trend-arrow{width:16px;height:16px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:currentColor;box-shadow:0 0 14px color-mix(in srgb,currentColor 24%,transparent);}
@@ -685,6 +728,7 @@
             <h2 class="text-lg font-bold section-title flex items-center gap-2">
                 <span id="cm-page-icon"></span> <span id="cm-page-title">投資組合績效曲線</span>
                 <span class="text-xs font-normal text-slate-400 ml-1" id="cm-page-sub"></span>
+                <button type="button" id="whatif-toggle-btn" class="whatif-btn" onclick="toggleWhatIf()" title="切換 What-if 續抱曲線：三位玩家各自的賣飛與逃頂">What if</button>
             </h2>
             <div class="adv-nav">
                 <button class="adv-arrow" onclick="cmGoto(-1)" title="上一頁">‹</button>
@@ -693,8 +737,10 @@
             </div>
         </div>
         <div id="cm-page-chart">
+            <div id="whatif-hint" class="whatif-hint"></div>
             <div class="text-xs text-slate-500" id="snapshot-window-hint" style="display:none;font-style:italic;margin-bottom:10px;"></div>
-            <div style="height:380px;position:relative;">
+            <div id="performance-mobile-legend" class="performance-mobile-legend"></div>
+            <div class="performance-chart-wrap">
                 <canvas id="performance-chart"></canvas>
             </div>
             <div id="chart-status" class="text-xs text-slate-500 text-center mt-3" style="font-style:italic;">資料載入中...</div>
@@ -987,6 +1033,10 @@
             <div><label class="modal-label">平倉日期</label><input type="date" id="closeDate" class="modal-input" onchange="calcClosePreview()"></div>
             <div><label class="modal-label">平倉價格</label><input type="number" step="0.01" id="closePrice" placeholder="0.00" class="modal-input" oninput="autoCalcCloseFee()"></div>
         </div>
+        <div style="margin-bottom:12px;">
+            <label class="modal-label">本次平倉股數</label>
+            <input type="number" step="any" min="0" id="closeSharesInput" placeholder="0" class="modal-input" oninput="autoCalcCloseFee()">
+        </div>
 
         <!-- 台股欄位 -->
         <div id="closeTWFieldsBlock">
@@ -1006,6 +1056,10 @@
         </div>
 
         <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:6px;">
+                <span style="color:var(--text-secondary);">FIFO 成本均價</span>
+                <span class="mono font-bold" id="closeFifoAvgPreview" style="color:var(--accent-amber);">--</span>
+            </div>
             <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
                 <span style="color:var(--text-secondary);">預計實現損益</span>
                 <span class="mono font-bold" id="closePnlPreview" style="font-size:16px;color:var(--text-muted);">--</span>
@@ -1288,9 +1342,20 @@ let emptyDailySnapshots={};       // {0:{date:{netValue,currency,initCap,ts}},..
 let benchmarkHistory={ dji:[], sp500:[], ndx:[], twii:[], btc:[], gold:[] }; // [{date,close},...]
 let performanceChart=null;
 let chartRenderTimer=null;
+let whatIfMode=false;
 let holdingPieCharts={}; // {playerName: Chart instance}
 let pokerChart=null;
 const HOLDING_PIE_COLORS = ['#C0AFB1','#77595E','#988083','#463639','#766269'];
+function getHoldingPieColor(index){
+    return HOLDING_PIE_COLORS[index % HOLDING_PIE_COLORS.length];
+}
+function normalizeHoldingPieColor(color, fallbackIndex=0){
+    const c = String(color || '').trim();
+    return HOLDING_PIE_COLORS.includes(c) ? c : getHoldingPieColor(fallbackIndex);
+}
+function randomHoldingPieColor(){
+    return getHoldingPieColor(Math.floor(Math.random() * HOLDING_PIE_COLORS.length));
+}
 function shortPieTickerLabel(label){
     const raw = String(label || '').replace('現金','CASH').trim();
     return raw.replace(/\.(TW|TWO)$/i,'').replace(/\s+/g,'').slice(0,7) || '--';
@@ -1345,6 +1410,34 @@ const holdingPieLabelPlugin = {
         ctx.restore();
     }
 };
+const holdingPieGlowPlugin = {
+    id: 'holdingPieGlowPlugin',
+    afterDatasetsDraw(chart){
+        const opts = chart.options?.plugins?.holdingPieGlowPlugin || {};
+        if(!opts.enabled) return;
+        const meta = chart.getDatasetMeta(0);
+        if(!meta) return;
+        const active = chart.getActiveElements ? chart.getActiveElements() : [];
+        const activeIdx = active && active.length ? active[0].index : -1;
+        const ctx = chart.ctx;
+        ctx.save();
+        meta.data.forEach((arc, i)=>{
+            if(activeIdx !== -1 && activeIdx !== i) return;
+            const color = chart.data.datasets[0].backgroundColor[i] || '#fff';
+            const props = arc.getProps(['x','y','startAngle','endAngle','innerRadius','outerRadius'], true);
+            ctx.beginPath();
+            ctx.arc(props.x, props.y, props.outerRadius + 4, props.startAngle, props.endAngle);
+            ctx.arc(props.x, props.y, props.innerRadius - 2, props.endAngle, props.startAngle, true);
+            ctx.closePath();
+            ctx.shadowColor = color;
+            ctx.shadowBlur = activeIdx === i ? 18 : 8;
+            ctx.globalAlpha = activeIdx === -1 ? .16 : .32;
+            ctx.fillStyle = color;
+            ctx.fill();
+        });
+        ctx.restore();
+    }
+};
 
 // ── 50 色色盤 (玩家曲線 / 指數虛線通用) ─────
 const COLOR_PALETTE = [
@@ -1381,14 +1474,45 @@ function hashString(str){
     return Math.abs(h);
 }
 
+const COLOR_MEMORY_KEY = 'emptyColorMemorySlotsV1';
+function safeColor(c, fallback){
+    const f = fallback || '#a855f7';
+    if(typeof c !== 'string') return f;
+    const v = c.trim();
+    if(/^#[0-9a-fA-F]{3,8}$/.test(v)) return v;
+    if(/^(rgb|rgba|hsl|hsla)\(\s*[\d.,%\s/]+\)$/i.test(v)) return v;
+    if(/^[a-zA-Z]{1,20}$/.test(v)) return v;
+    return f;
+}
+function colorMemoryScope(type, key){
+    const cleanType = type === 'index' ? 'index' : 'player';
+    return `${cleanType}:${String(key||'').trim()}`;
+}
+function getColorMemoryMap(){
+    try{
+        const map = JSON.parse(localStorage.getItem(COLOR_MEMORY_KEY) || '{}');
+        return map && typeof map === 'object' ? map : {};
+    }catch(e){ return {}; }
+}
+function getColorMemorySlots(type, key){
+    const map = getColorMemoryMap();
+    const arr = Array.isArray(map[colorMemoryScope(type,key)]) ? map[colorMemoryScope(type,key)] : [];
+    return Array.from({length:20}, (_,i)=> /^#[0-9a-f]{6}$/i.test(arr[i]||'') ? arr[i].toLowerCase() : '');
+}
+function saveColorMemorySlots(type, key, slots){
+    const map = getColorMemoryMap();
+    map[colorMemoryScope(type,key)] = slots.slice(0,20).map(c=>/^#[0-9a-f]{6}$/i.test(c||'') ? c.toLowerCase() : '');
+    try{ localStorage.setItem(COLOR_MEMORY_KEY, JSON.stringify(map)); }catch(e){}
+}
+
 function getPlayerColor(name, fallback){
     const saved = emptyChartColors.players && emptyChartColors.players[name];
-    if(saved) return saved;
+    if(saved) return safeColor(saved, fallback || '#a855f7');
     // 無自訂色 → 依名稱雜湊取穩定調色盤色 (所有 UI 元件同色, 不隨順序漂移)
-    return COLOR_PALETTE[hashString(name) % COLOR_PALETTE.length] || fallback || '#a855f7';
+    return safeColor(COLOR_PALETTE[hashString(name) % COLOR_PALETTE.length], fallback || '#a855f7');
 }
 function getIndexColor(key, fallback){
-    return (emptyChartColors.indices && emptyChartColors.indices[key]) || fallback || '#3b82f6';
+    return safeColor((emptyChartColors.indices && emptyChartColors.indices[key]) || fallback, fallback || '#3b82f6');
 }
 
 // ── 曲線可見性持久化 (localStorage, 防止 10 秒刷新重設) ─
@@ -3021,6 +3145,82 @@ function isTaiwanStock(ticker){
     return getStockCurrency(ticker) === 'TWD';
 }
 
+function normalizeTaiwanTickerCode(ticker){
+    return String(ticker||'').toUpperCase().trim().replace('.TWO','').replace('.TW','');
+}
+
+function stockNameHasChinese(name){
+    return /[\u3400-\u9fff]/.test(String(name||''));
+}
+
+function cleanStockNamePart(name){
+    const s = String(name||'').replace(/\s+/g,' ').trim();
+    if(!s || /^台股(上市|上櫃)?\s*\d{4,6}[A-Z]?$/i.test(s)) return '';
+    return s;
+}
+
+let twCompanyNameMap = null;
+const TW_COMPANY_INFO_URLS = [
+    'https://openapi.twse.com.tw/v1/opendata/t187ap03_L',
+    'https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O'
+];
+let twCompanyNameMapPromise = null;
+
+function formatStockDisplayName(ticker, primaryName='', fallbackName=''){
+    const primary = cleanStockNamePart(primaryName);
+    const fallback = cleanStockNamePart(fallbackName);
+    if(!isTaiwanStock(ticker)) return primary || fallback || '';
+    const t = String(ticker||'').toUpperCase().trim();
+    const code = normalizeTaiwanTickerCode(ticker);
+    const cachedChinese = twCompanyNameMap?.[t] || twCompanyNameMap?.[code] || '';
+    const parts = [cachedChinese, primary, fallback].filter(Boolean);
+    const chinese = parts.find(stockNameHasChinese) || '';
+    const english = parts.find(n=>!stockNameHasChinese(n)) || '';
+    if(chinese && english && !chinese.includes(english)) return `${chinese} ${english}`;
+    return chinese || english || '';
+}
+
+async function loadTaiwanCompanyNameMap(){
+    if(twCompanyNameMapPromise) return twCompanyNameMapPromise;
+    twCompanyNameMapPromise = (async()=>{
+        const map = {};
+        await Promise.allSettled(TW_COMPANY_INFO_URLS.map(async url=>{
+            const isOtc = url.includes('tpex.org.tw');
+            const r = await fetchYF(`${CF_PROXY}?url=${encodeURIComponent(url)}`, 12000, 1);
+            if(!r || !r.ok) return;
+            const rows = await r.json();
+            if(!Array.isArray(rows)) return;
+            rows.forEach(row=>{
+                const code = String(row['公司代號'] || row.SecuritiesCompanyCode || '').trim();
+                if(!code) return;
+                const abbr = cleanStockNamePart(row['公司簡稱'] || row.CompanyAbbreviation || '');
+                const full = cleanStockNamePart(row['公司名稱'] || row.CompanyName || '');
+                const name = abbr || full;
+                if(name){
+                    map[`${code}${isOtc ? '.TWO' : '.TW'}`] = name;
+                    if(!map[code]) map[code] = name;
+                }
+            });
+        }));
+        twCompanyNameMap = map;
+        return map;
+    })();
+    return twCompanyNameMapPromise;
+}
+
+async function getTaiwanStockChineseName(ticker){
+    if(!isTaiwanStock(ticker)) return '';
+    try{
+        const map = await loadTaiwanCompanyNameMap();
+        const t = String(ticker||'').toUpperCase().trim();
+        const code = normalizeTaiwanTickerCode(ticker);
+        return map[t] || map[code] || '';
+    }catch(e){
+        console.warn('台股中文名稱查詢失敗:', e.message);
+        return '';
+    }
+}
+
 // ── 玩家手續費規則表 ───────────────────────
 // 玩家一 (index 0): 台股 2.8 折、美股每筆 0.08% (國泰)
 // 玩家二 (index 1): 無交易手續費
@@ -3158,7 +3358,7 @@ async function fetchFinnhubPrice(ticker){
                     // 假日不回傳盤前/盤後價，避免顯示陳舊延伸時段資料
                     const safePost = isHoliday ? null : (lastPostClose||null);
                     const safePre  = isHoliday ? null : (lastPreClose||null);
-                    return { price:currentPrice, prevClose, postPrice:safePost, prePrice:safePre, session, name:meta.longName||meta.shortName||null };
+                    return { price:currentPrice, prevClose, postPrice:safePost, prePrice:safePre, session, name:formatStockDisplayName(ticker, meta.longName||meta.shortName||null) };
                 }
             }
         }
@@ -3175,7 +3375,7 @@ async function fetchFinnhubPrice(ticker){
 
 // ── 台股 Yahoo 備援報價 (Fugle 即時+歷史皆失敗時仍能取價) ──
 // Yahoo proxy 通道 (?url=) 對 .TW / .TWO 代號與美股完全相同, 直接複用
-async function fetchTWYahooFallback(ticker, twOpen, isTwHoliday){
+async function fetchTWYahooFallback(ticker, twOpen, isTwHoliday, chineseName=''){
     try{
         const yfUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1m&range=1d&includePrePost=false`;
         const r = await fetchYF(`${CF_PROXY}?url=${encodeURIComponent(yfUrl)}`, 10000);
@@ -3194,7 +3394,7 @@ async function fetchTWYahooFallback(ticker, twOpen, isTwHoliday){
         const session = twOpen ? '盤中' : (isTwHoliday ? '休市(假日)' : '休市');
         if(price && price > 0){
             console.log('台股Yahoo備援成功', ticker, price, session);
-            return { price, prevClose, postPrice:null, prePrice:null, session, name: meta.longName || meta.shortName || null };
+            return { price, prevClose, postPrice:null, prePrice:null, session, name: formatStockDisplayName(ticker, chineseName, meta.longName || meta.shortName || null) };
         }
     }catch(e){ console.warn('台股Yahoo備援失敗', ticker, e.message); }
     return null;
@@ -3202,7 +3402,8 @@ async function fetchTWYahooFallback(ticker, twOpen, isTwHoliday){
 
 async function fetchTWSEPrice(ticker){
     // 注意: 必須先剝 .TWO 再剝 .TW — 反過來 '6488.TWO' 會被切成 '6488O' (上櫃股票全滅)
-    const code = ticker.replace('.TWO','').replace('.TW','');
+    const code = normalizeTaiwanTickerCode(ticker);
+    const chineseNamePromise = getTaiwanStockChineseName(ticker);
     const tpNow = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
     const tpH=tpNow.getHours(), tpM=tpNow.getMinutes(), tpD=tpNow.getDay();
     const tpMin=tpH*60+tpM;
@@ -3218,12 +3419,13 @@ async function fetchTWSEPrice(ticker){
         if(r.ok){
             const d = await r.json();
             const name = d.name || d.longName || null;
+            const chineseName = await chineseNamePromise;
             const prevClose = d.previousClose || null;
             const price = twOpen ? (d.lastPrice||d.closePrice||null) : (d.closePrice||d.lastPrice||null);
             const session = twOpen ? '盤中' : (isTwHoliday ? '休市(假日)' : '休市');
             if(price && price > 0){
                 console.log('台股Fugle成功', code, price, session);
-                return { price, prevClose, postPrice:null, prePrice:null, session, name };
+                return { price, prevClose, postPrice:null, prePrice:null, session, name: formatStockDisplayName(ticker, chineseName || name, name) };
             }
         }
     }catch(e){ console.warn('Fugle即時失敗', code, e.message); }
@@ -3246,14 +3448,14 @@ async function fetchTWSEPrice(ticker){
                 const prevClose = candles.length>1 ? candles[candles.length-2].close : null;
                 if(price && price > 0){
                     console.log('台股Fugle歷史成功', code, price);
-                    return { price, prevClose, postPrice:null, prePrice:null, session:'休市', name:null };
+                    return { price, prevClose, postPrice:null, prePrice:null, session:'休市', name:formatStockDisplayName(ticker, await chineseNamePromise) };
                 }
             }
         }
     }catch(e){ console.warn('Fugle歷史失敗', code, e.message); }
 
     // ── 備援 2: Yahoo Finance (Fugle 即時 + 歷史皆失敗) ──
-    const yf = await fetchTWYahooFallback(ticker, twOpen, isTwHoliday);
+    const yf = await fetchTWYahooFallback(ticker, twOpen, isTwHoliday, await chineseNamePromise);
     if(yf) return yf;
 
     return null;
@@ -4023,9 +4225,43 @@ function scheduleChartRender(){
     chartRenderTimer = setTimeout(renderPerformanceChart, 400);
 }
 
+function renderPerformanceMobileLegend(datasets, compactChart){
+    const box = document.getElementById('performance-mobile-legend');
+    if(!box) return;
+    if(!compactChart){
+        box.innerHTML = '';
+        return;
+    }
+    box.innerHTML = datasets.map((ds, i)=>{
+        const color = ds.fullColor || ds.borderColor || '#ffffff';
+        const label = ds.displayLabel || ds.label || '';
+        const key = ds.originalLabel || ds.label || label;
+        const visible = performanceChart ? performanceChart.isDatasetVisible(i) : !ds.hidden;
+        return `<button type="button" class="${visible?'':'is-hidden'}" style="color:${color};" onclick="togglePerformanceLegendItem(${i},'${escJs(key)}')" title="${esc(label)}">
+            <span class="performance-mobile-legend-dot"></span>
+            <span class="performance-mobile-legend-text">${esc(label)}</span>
+        </button>`;
+    }).join('');
+}
+
+function togglePerformanceLegendItem(index, key){
+    if(!performanceChart) return;
+    if(performanceChart.isDatasetVisible(index)){
+        performanceChart.hide(index);
+        hiddenChartLabels.add(key);
+    } else {
+        performanceChart.show(index);
+        hiddenChartLabels.delete(key);
+    }
+    saveHiddenLabels();
+    renderPerformanceMobileLegend(performanceChart.data.datasets, true);
+}
+
 // ── 繪製績效曲線 ──────────────────────────
 function renderPerformanceChart(){
     if(typeof Chart==='undefined') return;
+    if(typeof ensureWhatIfGlowLinePlugin === 'function') ensureWhatIfGlowLinePlugin();
+    if(whatIfMode){ renderWhatIfChart(); return; }
     const canvas = document.getElementById('performance-chart');
     if(!canvas) return;
 
@@ -4053,6 +4289,7 @@ function renderPerformanceChart(){
 
     // 2. 參賽者 datasets — TWR 時間加權報酬率
     //    每筆入金日期作為分段切點,加碼當下不會造成績效斷層
+    const compactChart = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
     const playerColors = ['#a855f7', '#ffffff', '#fbbf24', '#06b6d4', '#ec4899'];
     const datasets = [];
     participants.forEach((p, idx)=>{
@@ -4131,11 +4368,12 @@ function renderPerformanceChart(){
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: { right: 76 } },
+                layout: { padding: { right: compactChart ? 28 : 76 } },
                 interaction: { mode:'index', intersect:false },
                 animation: { duration: 600 },
                 plugins: {
                     legend: {
+                        display: !compactChart,
                         labels: {
                             color:'#e8f4fd',
                             usePointStyle: true,
@@ -4234,6 +4472,11 @@ function renderPerformanceChart(){
             }
         });
     }
+    if(performanceChart){
+        performanceChart.options.layout.padding = { right: compactChart ? 28 : 76 };
+        if(performanceChart.options.plugins?.legend) performanceChart.options.plugins.legend.display = !compactChart;
+    }
+    renderPerformanceMobileLegend(datasets, compactChart);
 
     // 5. 狀態文字 — 顯示資料來源與交易筆數
     const statusEl = document.getElementById('chart-status');
@@ -4250,6 +4493,298 @@ function renderPerformanceChart(){
 
     // 7. 進階戰情室 (王座/撞股/水下回撤/風險/回放) — 同源定錨
     renderAdvancedPanel(allDates, lastTradingDayStr);
+}
+
+// ══════════════════════════════════════════════
+// ──   What-if 續抱至今 曲線                 ──
+// ══════════════════════════════════════════════
+function whatIfTradeBuyDate(t){
+    if(t.firstBuyDate) return normalizeDate(t.firstBuyDate);
+    if(Array.isArray(t.closedLots)){
+        const ds = t.closedLots.map(l=>normalizeDate(l.buyDate||'')).filter(Boolean).sort();
+        if(ds.length) return ds[0];
+    }
+    return '';
+}
+
+function collectWhatIfCandidates(){
+    const out = [];
+    participants.forEach((p, pIdx)=>{
+        const trades = Array.isArray(p.trades) ? p.trades : [];
+        trades.forEach(t=>{
+            const ticker = (t.ticker||'').toUpperCase().trim();
+            if(!ticker) return;
+            const buyPrice = parseFloat(t.buyPrice)||0;
+            const shares   = parseFloat(t.shares)||0;
+            if(buyPrice<=0 || shares<=0) return;
+            const buyDate = whatIfTradeBuyDate(t);
+            const sellDate = normalizeDate(t.date||'');
+            if(!buyDate || !sellDate) return;
+            const hist = stockHistory[ticker] || [];
+            if(!hist.length) return;
+            const latestClose = hist[hist.length-1].close;
+            if(!(latestClose>0)) return;
+            const cur = getStockCurrency(t.ticker) || p.currency || 'TWD';
+            const playerCur = p.currency || cur;
+            const realizedPnlNative = parseFloat(t.pnl)||0;
+            const realizedPnlPlayer = convertCurrency(realizedPnlNative, cur, playerCur);
+            const realizedPnlTwd    = convertCurrency(realizedPnlNative, cur, 'TWD');
+            const hypoPnlNative = (latestClose - buyPrice) * shares;
+            const hypoPnlPlayer = convertCurrency(hypoPnlNative, cur, playerCur);
+            const hypoPnlTwd    = convertCurrency(hypoPnlNative, cur, 'TWD');
+            const deltaPlayer   = hypoPnlPlayer - realizedPnlPlayer;
+            const deltaTwd      = hypoPnlTwd - realizedPnlTwd;
+            const hypoPct       = (latestClose - buyPrice)/buyPrice*100;
+            const actualNetToday = calcCurrentNetValue(p);
+            const hypoNetToday = actualNetToday - realizedPnlPlayer + hypoPnlPlayer;
+            out.push({
+                playerName: p.name, playerIndex: pIdx, player:p, ticker, stockName: t.stockName||'',
+                buyPrice, shares, buyDate, sellDate, currency: cur, playerCurrency: playerCur,
+                hist, latestClose, hypoPnlNative, hypoPnlPlayer, hypoPnlTwd, hypoPct,
+                realizedPnlNative, realizedPnlPlayer, deltaPlayer, deltaTwd,
+                actualNetToday, hypoNetToday, baseCapital:getTotalDeposit(p) || getCumulativeDeposit(p, buyDate) || 1,
+                wasModeledBeforeSell: !!normalizeDate(t.firstBuyDate||'')
+            });
+        });
+    });
+    return out;
+}
+
+function buildWhatIfPlayerExtremes(cands){
+    return participants.map((p, pIdx)=>{
+        const items = cands.filter(c=>c.playerIndex===pIdx);
+        if(!items.length) return null;
+        const fly = items.reduce((a,b)=> b.deltaTwd>a.deltaTwd ? b : a);
+        const escape = items.reduce((a,b)=> b.deltaTwd<a.deltaTwd ? b : a);
+        return { player:p, playerIndex:pIdx, fly, escape };
+    }).filter(Boolean);
+}
+
+function whatIfCurveData(cand, allDates, lastTradingDayStr){
+    const map = {}; cand.hist.forEach(h=>{ map[h.date]=h.close; });
+    let last=null;
+    const netValues = [];
+    const deltaValues = [];
+    const data = allDates.map((date, idx)=>{
+        if(date < cand.buyDate) return null;
+        if(map[date]!=null) last=map[date];
+        if(last==null) return null;
+        const baseNet = calcNetValueOnDate(cand.player, date, date === lastTradingDayStr);
+        if(baseNet==null || !isFinite(baseNet)) return null;
+        const hypoPnlNative = (last - cand.buyPrice) * cand.shares;
+        const hypoPnlPlayer = convertCurrency(hypoPnlNative, cand.currency, cand.playerCurrency);
+        let hypoNet = baseNet;
+        if(date >= cand.sellDate){
+            hypoNet = baseNet - cand.realizedPnlPlayer + hypoPnlPlayer;
+        } else if(!cand.wasModeledBeforeSell){
+            hypoNet = baseNet + hypoPnlPlayer;
+        }
+        netValues[idx] = hypoNet;
+        deltaValues[idx] = hypoNet - baseNet;
+        const baseCapital = cand.baseCapital || getCumulativeDeposit(cand.player, date) || 1;
+        return ((hypoNet - baseCapital) / baseCapital) * 100;
+    });
+    return { data, netValues, deltaValues };
+}
+
+function renderWhatIfStatus(){
+    const el=document.getElementById('chart-status');
+    if(el) el.innerHTML = '';
+}
+
+function renderWhatIfChart(){
+    if(typeof Chart==='undefined') return;
+    const canvas = document.getElementById('performance-chart');
+    if(!canvas) return;
+    if(!performanceChart){ whatIfMode=false; renderPerformanceChart(); whatIfMode=true; }
+    if(!performanceChart) return;
+
+    const allDates=[];
+    const startDate=new Date(BENCHMARK_START_DATE+'T00:00:00');
+    const todayStr=getTaipeiToday();
+    const todayDate=new Date(todayStr+'T00:00:00');
+    for(let d=new Date(startDate); d<=todayDate; d.setDate(d.getDate()+1)){
+        const day=d.getDay(); if(day===0||day===6) continue;
+        const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+        allDates.push(`${y}-${m}-${dd}`);
+    }
+    const labels=allDates.map(date=>{ const [,m,d]=date.split('-'); return `${parseInt(m,10)}/${parseInt(d,10)}`; });
+    const lastTradingDayStr = allDates.length ? allDates[allDates.length-1] : todayStr;
+
+    const cands = collectWhatIfCandidates();
+    const hintEl=document.getElementById('whatif-hint');
+    const compactChart = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+    const playerColors = ['#a855f7', '#ffffff', '#fbbf24', '#06b6d4', '#ec4899'];
+    const datasets=[];
+
+    if(cands.length===0){
+        if(hintEl){
+            hintEl.classList.add('show');
+            hintEl.innerHTML = '<b>What-if · 續抱至今</b>　目前沒有可分析的已平倉交易紀錄（需具備建倉日、平倉日, 且該股有歷史日K資料）。';
+        }
+        performanceChart.data.labels=labels;
+        performanceChart.data.datasets=[];
+        performanceChart.update('none');
+        renderPerformanceMobileLegend([], compactChart);
+        renderWhatIfStatus();
+        renderAdvancedPanel(allDates, lastTradingDayStr);
+        return;
+    }
+
+    const playerExtremes = buildWhatIfPlayerExtremes(cands);
+    if(typeof ensureWhatIfGlowLinePlugin === 'function') ensureWhatIfGlowLinePlugin();
+
+    function mkDataset(cand, role, color){
+        const sellIdx = allDates.indexOf(cand.sellDate);
+        const roleTxt = role==='fly' ? '賣飛' : role==='escape' ? '逃頂' : '賣飛/逃頂';
+        const glow = role === 'fly';
+        const curve = whatIfCurveData(cand, allDates, lastTradingDayStr);
+        return {
+            label: `${shortName(cand.playerName, 2)} · ${roleTxt} · ${cand.ticker}`,
+            displayLabel: shortName(cand.playerName, 2),
+            originalLabel: `${cand.playerName} ${roleTxt} ${cand.ticker}`,
+            data: curve.data,
+            whatIfNetValues: curve.netValues,
+            whatIfDeltaValues: curve.deltaValues,
+            playerCurrency: cand.playerCurrency,
+            borderColor: color,
+            backgroundColor: 'transparent',
+            borderWidth: glow ? 2.8 : 2.15,
+            borderDash: role==='escape' ? [6, 4] : [],
+            tension: 0.25,
+            pointRadius: ctx=> ctx.dataIndex===sellIdx ? 5 : 0,
+            pointHoverRadius: 6,
+            pointStyle: 'rectRot',
+            pointBackgroundColor: color,
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 1.4,
+            spanGaps: false,
+            fill: false,
+            whatIfGlow: glow,
+            glowLine: true,
+            hidden: false
+        };
+    }
+
+    playerExtremes.forEach(group=>{
+        const color = getPlayerColor(group.player.name, playerColors[group.playerIndex % playerColors.length]);
+        datasets.push(mkDataset(group.fly, 'fly', color));
+        if(group.escape !== group.fly) datasets.push(mkDataset(group.escape, 'escape', color));
+    });
+
+    performanceChart.data.labels=labels;
+    performanceChart.data.datasets=datasets;
+    const allY = datasets.flatMap(ds=>ds.data).filter(v=>v!=null && isFinite(v));
+    const yMin = allY.length ? Math.min(...allY, 0) : 0;
+    const yMax = allY.length ? Math.max(...allY, 0) : 0;
+    const yPad = Math.max((yMax - yMin) * 0.08, 1);
+    performanceChart.options.layout.padding = { right: compactChart ? 28 : 44, top: compactChart ? 2 : 0 };
+    performanceChart.options.plugins.legend = { display:false };
+    performanceChart.options.plugins.tooltip.callbacks = {
+        title(items){
+            if(!items.length) return '';
+            const date = allDates[items[0].dataIndex] || '';
+            return date ? `${date}（假設續抱淨值）` : '';
+        },
+        label(c){
+            const v = c.parsed.y;
+            const ds = c.dataset || {};
+            const label = ds.displayLabel || ds.label || '';
+            const out = [];
+            out.push(v==null || !isFinite(v) ? `${label}: --` : `${label}: ${v>=0?'+':''}${v.toFixed(2)}%`);
+            const net = Array.isArray(ds.whatIfNetValues) ? ds.whatIfNetValues[c.dataIndex] : null;
+            const delta = Array.isArray(ds.whatIfDeltaValues) ? ds.whatIfDeltaValues[c.dataIndex] : null;
+            const cur = ds.playerCurrency || 'TWD';
+            if(net!=null && isFinite(net)) out.push(`假設淨值: ${fmtRaw(net, cur, cur==='USD'?2:0)}`);
+            if(delta!=null && isFinite(delta)) out.push(`相對實際: ${delta>=0?'+':'-'}${fmtRaw(Math.abs(delta), cur, cur==='USD'?2:0)}`);
+            return out;
+        },
+        labelColor(c){
+            const color = c.dataset.borderColor || '#f2e9ec';
+            return {borderColor: color, backgroundColor: color, borderWidth: 0};
+        }
+    };
+    performanceChart.options.scales.x.ticks = {
+        color:'#7ba5cc',
+        font:{ size:compactChart ? 10 : 11, family:NUMBER_FONT_FAMILY },
+        maxRotation: 0,
+        autoSkipPadding: compactChart ? 12 : 20,
+        maxTicksLimit: compactChart ? 5 : 8
+    };
+    performanceChart.options.scales.y.ticks = {
+        color:'#7ba5cc',
+        font:{ size:compactChart ? 10 : 11, family:NUMBER_FONT_FAMILY },
+        callback: v => (v>=0?'+':'') + v.toFixed(1) + '%'
+    };
+    performanceChart.options.scales.y.suggestedMin = Math.floor((yMin-yPad)*10)/10;
+    performanceChart.options.scales.y.suggestedMax = Math.ceil((yMax+yPad)*10)/10;
+    performanceChart.update('none');
+    renderPerformanceMobileLegend([], compactChart);
+
+    if(hintEl){
+        const pctStr = c => `${c.hypoPct>=0?'+':''}${c.hypoPct.toFixed(1)}%`;
+        const netTwdStr = c => fmtRaw(convertCurrency(c.hypoNetToday, c.playerCurrency, 'TWD'), 'TWD');
+        const diffTwdStr = c => {
+            const v = convertCurrency(c.deltaPlayer, c.playerCurrency, 'TWD');
+            return `${v>=0?'+':'-'}${fmtRaw(Math.abs(v), 'TWD')}`;
+        };
+        const whatIfAssetLabel = c => formatStockDisplayName(c.ticker, c.stockName) || c.stockName || c.ticker;
+        const netCell = (cand, cls, label, fallbackText)=>{
+            if(!cand) return `<div class="wi-net-cell ${cls}">
+                <div class="wi-net-label"><span>${label}</span><span>同一筆</span></div>
+                <div class="wi-net-val">${fallbackText}</div>
+                <div class="wi-net-sub">同一筆交易</div>
+            </div>`;
+            const assetLabel = whatIfAssetLabel(cand);
+            return `<div class="wi-net-cell ${cls}" title="${label} ${esc(assetLabel)} ${pctStr(cand)}">
+                <div class="wi-net-label"><span>${label}</span><span title="${esc(assetLabel)}">${esc(assetLabel)}</span></div>
+                <div class="wi-net-val">${netTwdStr(cand)}</div>
+                <div class="wi-net-sub">${pctStr(cand)}｜差額 ${diffTwdStr(cand)}</div>
+            </div>`;
+        };
+        const rows = playerExtremes.map(group=>{
+            const color = getPlayerColor(group.player.name, playerColors[group.playerIndex % playerColors.length]);
+            const actualNet = calcCurrentNetValue(group.player);
+            const cur = group.player.currency || group.fly.playerCurrency || 'TWD';
+            const actualNetText = fmtRaw(convertCurrency(actualNet, cur, 'TWD'), 'TWD');
+            const escapeCand = group.escape === group.fly ? null : group.escape;
+            return `<div class="wi-net-row" style="--player-color:${color};">
+                <div class="wi-net-player" title="${esc(group.player.name)}">${esc(shortName(group.player.name, 2))}</div>
+                <div class="wi-net-metrics">
+                    <div class="wi-net-cell current">
+                        <div class="wi-net-label"><span>帳戶淨值</span><span>目前實際</span></div>
+                        <div class="wi-net-val">${actualNetText}</div>
+                    </div>
+                    ${netCell(group.fly, 'fly', '賣飛淨值', '')}
+                    ${netCell(escapeCand, 'escape', '逃頂淨值', netTwdStr(group.fly))}
+                </div>
+            </div>`;
+        }).join('');
+        hintEl.innerHTML = `<div class="wi-summary-head"><div class="wi-summary-title">What-if · 續抱至今</div></div><div class="wi-net-list">${rows}</div>`;
+        hintEl.classList.add('show');
+    }
+
+    renderWhatIfStatus();
+    renderAdvancedPanel(allDates, lastTradingDayStr);
+}
+
+function toggleWhatIf(){
+    whatIfMode = !whatIfMode;
+    const btn = document.getElementById('whatif-toggle-btn');
+    if(btn) btn.classList.toggle('active', whatIfMode);
+    const chartPg = document.getElementById('cm-page-chart');
+    if(chartPg){ chartPg.classList.remove('adv-fade'); void chartPg.offsetWidth; chartPg.classList.add('adv-fade'); }
+    if(!whatIfMode){
+        const hint = document.getElementById('whatif-hint');
+        if(hint){ hint.classList.remove('show'); hint.innerHTML=''; }
+        const statusEl = document.getElementById('chart-status');
+        if(statusEl) statusEl.innerHTML='';
+    }
+    const titleEl = document.getElementById('cm-page-title');
+    if(titleEl && CM_PAGES[cmPage] && CM_PAGES[cmPage].id==='chart'){
+        titleEl.textContent = whatIfMode ? 'What-if · 續抱至今' : CM_PAGES[cmPage].title;
+    }
+    renderPerformanceChart();
 }
 
 // ── 績效統計面板 ─────────────────────────────
@@ -4445,11 +4980,121 @@ function switchCardTab(name, tab){
     cardTabMap[name] = tab;
     const zone = document.querySelector(`.lock-zone[data-player="${CSS.escape(name)}"]`);
     if(!zone) return;
-    zone.querySelectorAll('.card-tab').forEach(b=>b.classList.toggle('active', b.dataset.tab === tab));
+    zone.querySelectorAll('.history-toolbar .card-tab').forEach(b=>b.classList.toggle('active', b.dataset.tab === tab));
     const hist = zone.querySelector('.card-pane-history');
     const attr = zone.querySelector('.card-pane-attr');
     if(hist) hist.style.display = tab==='history' ? '' : 'none';
     if(attr) attr.style.display = tab==='attr' ? '' : 'none';
+}
+
+function buildPlayerPerfRiskHTML(p, pIdx){
+    const pl = advData && advData.players && advData.players[pIdx];
+    if(!pl){
+        return '<div class="lz-perf-skel">績效資料載入中<br><span style="font-size:10px;">待績效曲線完成計算後自動顯示</span></div>';
+    }
+    const navs = pl.nav || [];
+    let peak=-Infinity, peakIdx=0, mdd=0, mddPeakIdx=0, mddTroughIdx=0;
+    navs.forEach((v,i)=>{
+        if(!isFinite(v)) return;
+        if(v>peak){ peak=v; peakIdx=i; }
+        const dd = peak>0 ? (v-peak)/peak : 0;
+        if(dd<mdd){ mdd=dd; mddPeakIdx=peakIdx; mddTroughIdx=i; }
+    });
+    let recovered=false, ddEndIdx=navs.length-1;
+    if(mdd<0){
+        for(let i=mddTroughIdx;i<navs.length;i++){
+            if(navs[i]>navs[mddPeakIdx]){ recovered=true; ddEndIdx=i; break; }
+        }
+    }
+    const ddDays = mdd<0 ? (ddEndIdx-mddPeakIdx) : 0;
+
+    const trades = Array.isArray(p.trades)?p.trades:[];
+    const tStats = trades.map(t=>{
+        const tCur = getStockCurrency(t.ticker);
+        const pnl = convertCurrency(parseFloat(t.pnl)||0, tCur, p.currency);
+        let hold=null;
+        const bd=normalizeDate(t.firstBuyDate||''), sd=normalizeDate(t.date||'');
+        if(bd&&sd){ hold=Math.max(0,Math.round((Date.parse(sd+'T00:00:00')-Date.parse(bd+'T00:00:00'))/86400000)); }
+        return { ticker:t.ticker||'--', pnl, hold };
+    });
+    const wins=tStats.filter(t=>t.pnl>0);
+    const losses=tStats.filter(t=>t.pnl<0);
+    const winRate=tStats.length?(wins.length/tStats.length*100):null;
+    const grossWin=wins.reduce((s,t)=>s+t.pnl,0);
+    const grossLoss=Math.abs(losses.reduce((s,t)=>s+t.pnl,0));
+    const pf=grossLoss>0?(grossWin/grossLoss):(grossWin>0?Infinity:null);
+    const holds=tStats.filter(t=>t.hold!==null);
+    const avgHold=holds.length?holds.reduce((s,t)=>s+t.hold,0)/holds.length:null;
+    let best=null, worst=null;
+    tStats.forEach(t=>{ if(!best||t.pnl>best.pnl)best=t; if(!worst||t.pnl<worst.pnl)worst=t; });
+    const fmtTradeSingle=t=>{
+        if(!t) return `<div class="stats-val mono text-slate-400">--</div><div class="stats-sub">尚無交易</div>`;
+        const neg=t.pnl<0, cls=neg?'text-red-400':'text-emerald-400';
+        return `<div class="stats-val mono ${cls}">${neg?'-':'+'}${fmtRaw(Math.abs(t.pnl),p.currency)}</div><div class="stats-sub mono">${esc(t.ticker||'--')}</div>`;
+    };
+
+    const rets=[];
+    for(let i=1;i<navs.length;i++){
+        const a=navs[i-1], b=navs[i];
+        if(a!=null&&b!=null&&a>0&&!isNaN(a)&&!isNaN(b)) rets.push(b/a-1);
+    }
+    let annVol=null, sharpe=null, sortino=null;
+    if(rets.length>=2){
+        const mean=rets.reduce((s,v)=>s+v,0)/rets.length;
+        const sd=Math.sqrt(rets.reduce((s,v)=>s+(v-mean)*(v-mean),0)/(rets.length-1));
+        const dn=rets.map(v=>Math.min(0,v));
+        const dsd=Math.sqrt(dn.reduce((s,v)=>s+v*v,0)/(rets.length-1));
+        annVol=sd*Math.sqrt(252)*100;
+        sharpe=sd>0?mean/sd*Math.sqrt(252):(mean>0?Infinity:null);
+        sortino=dsd>0?mean/dsd*Math.sqrt(252):(mean>0?Infinity:null);
+    }
+    const fmtRatio=v=>v==null?'--':(v===Infinity?'∞':v.toFixed(2));
+    const ratioCls=v=>v==null?'text-slate-400':(v===Infinity||v>=1?'text-emerald-400':(v>=0?'text-amber-400':'text-red-400'));
+
+    return `<div class="lz-sec-title">績效統計</div>
+    <div class="stats-grid">
+        <div class="stats-item"><div class="stats-label">最大回撤 (MDD)</div><div class="stats-val mono ${mdd<0?'text-red-400':'text-slate-400'}">${mdd<0?(mdd*100).toFixed(2)+'%':'--'}</div><div class="stats-sub">${mdd<0?`持續 ${ddDays} 個交易日${recovered?' · 已收復':' · 尚未收復'}`:'尚無回撤'}</div></div>
+        <div class="stats-item"><div class="stats-label">勝率（已平倉）</div><div class="stats-val mono ${winRate===null?'text-slate-400':(winRate>=50?'text-emerald-400':'text-amber-400')}">${winRate===null?'--':winRate.toFixed(0)+'%'}</div><div class="stats-sub">${tStats.length?`${wins.length} 勝 ${losses.length} 敗 · 共 ${tStats.length} 筆`:'尚無平倉交易'}</div></div>
+        <div class="stats-item"><div class="stats-label">盈虧比</div><div class="stats-val mono ${pf===null?'text-slate-400':(pf>=1?'text-emerald-400':'text-amber-400')}">${pf===null?'--':(pf===Infinity?'∞':pf.toFixed(2))}</div><div class="stats-sub">總獲利 ÷ 總虧損</div></div>
+        <div class="stats-item"><div class="stats-label">平均持有天數</div><div class="stats-val mono ${avgHold===null?'text-slate-400':'text-white'}">${avgHold===null?'--':avgHold.toFixed(1)+' 天'}</div><div class="stats-sub">${holds.length?`計入 ${holds.length} 筆含建倉日的交易`:'交易需填建倉日期'}</div></div>
+        <div class="stats-item stats-trade-item"><div class="stats-label">單筆交易 · 最佳</div>${fmtTradeSingle(best)}</div>
+        <div class="stats-item stats-trade-item"><div class="stats-label">單筆交易 · 最虧</div>${fmtTradeSingle(worst)}</div>
+    </div>
+    <div class="lz-sec-title">風險指標</div>
+    <div class="lz-sec-cap">樣本 ${rets.length} 個交易日 · 無風險利率以 0 計</div>
+    <div class="stats-grid">
+        <div class="stats-item"><div class="stats-label">夏普值</div><div class="stats-val mono ${ratioCls(sharpe)}">${fmtRatio(sharpe)}</div><div class="stats-sub">每單位波動換到的報酬</div></div>
+        <div class="stats-item"><div class="stats-label">Sortino</div><div class="stats-val mono ${ratioCls(sortino)}">${fmtRatio(sortino)}</div><div class="stats-sub">只計下跌波動</div></div>
+        <div class="stats-item"><div class="stats-label">年化波動率</div><div class="stats-val mono ${annVol==null?'text-slate-400':'text-white'}">${annVol==null?'--':annVol.toFixed(1)+'%'}</div><div class="stats-sub">日報酬標準差 × √252</div></div>
+    </div>`;
+}
+
+const cardSumTab = {};
+function switchSumTab(name, tab){
+    cardSumTab[name] = tab;
+    const zone = document.querySelector(`.lock-zone[data-player="${CSS.escape(name)}"]`);
+    if(!zone) return;
+    zone.querySelectorAll('.lz-sum-tabs .card-tab').forEach(b=>b.classList.toggle('active', b.dataset.sumtab === tab));
+    const asset = zone.querySelector('.lz-pane-asset');
+    const perf = zone.querySelector('.lz-pane-perf');
+    if(asset) asset.style.display = tab==='asset' ? '' : 'none';
+    if(perf){
+        perf.style.display = tab==='perf' ? '' : 'none';
+        if(tab==='perf' && !perf.dataset.loaded){
+            const pIdx = participants.findIndex(p=>p.name===name);
+            if(pIdx>=0) perf.innerHTML = buildPlayerPerfRiskHTML(participants[pIdx], pIdx);
+            perf.dataset.loaded = '1';
+        }
+    }
+}
+
+function refreshOpenPerfPanes(){
+    document.querySelectorAll('.lz-pane-perf[data-perf-player]').forEach(el=>{
+        if(el.style.display === 'none') return;
+        const name = el.getAttribute('data-perf-player') || '';
+        const pIdx = participants.findIndex(p=>p.name===name);
+        if(pIdx>=0) el.innerHTML = buildPlayerPerfRiskHTML(participants[pIdx], pIdx);
+    });
 }
 
 // ── 監聽 emptyDailySnapshots ───────────────────
@@ -4514,6 +5159,7 @@ function renderHoldingPie(playerName, sliceData, totalHoldings){
             interaction: { mode:'nearest', intersect:true },
             plugins: {
                 legend: { display: false },
+                holdingPieGlowPlugin: { enabled: true },
                 tooltip: {
                     backgroundColor: 'rgba(62,62,66,.96)',
                     borderColor: 'rgba(255,255,255,.12)',
@@ -4540,7 +5186,7 @@ function renderHoldingPie(playerName, sliceData, totalHoldings){
                 }
             }
         },
-        plugins: [holdingPieLabelPlugin]
+        plugins: [holdingPieGlowPlugin, holdingPieLabelPlugin]
     });
 }
 
@@ -4600,7 +5246,7 @@ db.ref('emptyCompetitionData').on('value',async snapshot=>{
         participants[pi].stocks[si].postPrice=result.postPrice||null;
         participants[pi].stocks[si].prePrice=result.prePrice||null;
         participants[pi].stocks[si].session=result.session||'';
-        if(result.name) participants[pi].stocks[si].stockName=result.name;
+        if(result.name) participants[pi].stocks[si].stockName=formatStockDisplayName(job.ticker, result.name, participants[pi].stocks[si].stockName);
     });
     renderDashboard();
     setStatus('ok','');updateRefreshCountdown();
@@ -5153,7 +5799,7 @@ function renderDashboard(){
                          s.currentPrice||0;
                 const sCur=getStockCurrency(s.ticker)||s.currency||p.currency;
                 const mvRaw=(s.shares||0)*lp;
-                return { ticker: s.ticker||'--', mv: Math.max(0, convertCurrency(mvRaw, sCur, p.currency)) };
+                return { ticker: s.ticker||'--', mv: Math.max(0, convertCurrency(mvRaw, sCur, p.currency)), color: s.pieColor };
             }).filter(x=>x.mv>0).sort((a,b)=>b.mv-a.mv);
 
             // 現金 slice (持有現金 autoCash; 若為負數=融資, 不顯示為 slice)
@@ -5163,7 +5809,7 @@ function renderDashboard(){
 
             // 著色
             pieSlices.forEach((s,i)=>{
-                s.color = s.isCash ? '#475569' : HOLDING_PIE_COLORS[i % HOLDING_PIE_COLORS.length];
+                s.color = s.isCash ? '#475569' : normalizeHoldingPieColor(s.color || s.pieColor, i);
             });
 
             const totalPieMV = pieSlices.reduce((sum,s)=>sum+s.mv,0);
@@ -5388,8 +6034,17 @@ function renderDashboard(){
                         </div>
                     </div>`
                   : `<div class="lock-content">
-                    ${pieHTML}
-                    ${holdHTML}
+                    <div class="lz-sum-tabs">
+                        <button class="card-tab ${(cardSumTab[p.name]||'asset')==='asset'?'active':''}" data-sumtab="asset" onclick="switchSumTab('${escJs(p.name)}','asset')">資產明細</button>
+                        <button class="card-tab ${cardSumTab[p.name]==='perf'?'active':''}" data-sumtab="perf" onclick="switchSumTab('${escJs(p.name)}','perf')">績效 / 風險</button>
+                    </div>
+                    <div class="lz-sum-pane lz-pane-asset" style="${cardSumTab[p.name]==='perf'?'display:none;':''}">
+                        ${pieHTML}
+                        ${holdHTML}
+                    </div>
+                    <div class="lz-sum-pane lz-pane-perf" data-perf-player="${esc(p.name)}" style="${cardSumTab[p.name]==='perf'?'':'display:none;'}">
+                        ${cardSumTab[p.name]==='perf' ? buildPlayerPerfRiskHTML(p, pIdx) : ''}
+                    </div>
                     <div class="history-section">
                         <div class="history-toolbar">
                             <div class="card-tabs">
@@ -5579,6 +6234,145 @@ function autoMigrateLegacyPins(){
     });
     pinMigrationDone = true;
 }
+// ── 密碼暴力嘗試防護: 連續錯誤 → 鎖定 + 告警 ──────────────
+// 失敗紀錄持久化於 emptyLockSecurity 與玩家鏡像欄位, 跨刷新有效且不連到第一個網站。
+const PIN_MAX_FAILS  = 3;
+const PIN_LOCKOUT_MS = 5 * 60 * 1000;
+const lockoutState = {};
+const PIN_LOCKOUT_LOCAL_PREFIX = 'emptyPinLockout:';
+let lockoutTimer = null;
+
+function getParticipantIndexByName(name){
+    return participants.findIndex(x=>x.name===name);
+}
+function lockSecRef(name){
+    const pi = getParticipantIndexByName(name);
+    return pi === -1 ? null : db.ref('emptyLockSecurity/'+pi);
+}
+function lockFailMirrorRef(name){
+    const pi = getParticipantIndexByName(name);
+    return pi === -1 ? null : db.ref('emptyCompetitionData/'+pi+'/lockSecurity');
+}
+function lockoutRemainMs(st){ return Math.max(0, ((st&&st.lockUntil)||0) - Date.now()); }
+function normalizeLockout(v){
+    return {
+        fails: Math.max(0, parseInt(v?.fails||0,10) || 0),
+        lockUntil: Math.max(0, parseInt(v?.lockUntil||0,10) || 0),
+        lastAttempt: Math.max(0, parseInt(v?.lastAttempt||0,10) || 0)
+    };
+}
+function strongestLockout(...states){
+    const live = states.filter(Boolean).map(normalizeLockout);
+    return live.reduce((best, st)=>{
+        if(st.lockUntil > best.lockUntil) return st;
+        if(st.lockUntil === best.lockUntil && st.fails > best.fails) return st;
+        return best;
+    }, {fails:0, lockUntil:0, lastAttempt:0});
+}
+function lockoutLocalKey(name){ return PIN_LOCKOUT_LOCAL_PREFIX + encodeURIComponent(name); }
+function readLocalLockout(name){
+    try{ return normalizeLockout(JSON.parse(localStorage.getItem(lockoutLocalKey(name))||'{}')); }
+    catch(e){ return {fails:0, lockUntil:0, lastAttempt:0}; }
+}
+function saveLocalLockout(name, st){
+    try{ localStorage.setItem(lockoutLocalKey(name), JSON.stringify(normalizeLockout(st))); }catch(e){}
+}
+function clearLocalLockout(name){
+    try{ localStorage.removeItem(lockoutLocalKey(name)); }catch(e){}
+}
+function getMirrorLockout(name){
+    const pi = getParticipantIndexByName(name);
+    return pi === -1 ? {fails:0, lockUntil:0, lastAttempt:0} : normalizeLockout(participants[pi].lockSecurity);
+}
+async function persistLockout(name, st){
+    const clean = normalizeLockout(st);
+    saveLocalLockout(name, clean);
+    lockoutState[name] = clean;
+    const writes = [];
+    const ref = lockSecRef(name);
+    const mirror = lockFailMirrorRef(name);
+    if(ref) writes.push(ref.set(clean));
+    if(mirror) writes.push(mirror.set(clean));
+    await Promise.allSettled(writes);
+}
+async function getLockout(name){
+    const ref = lockSecRef(name);
+    const local = readLocalLockout(name);
+    const mirror = getMirrorLockout(name);
+    const memory = lockoutState[name] || {fails:0, lockUntil:0};
+    if(!ref) return strongestLockout(local, mirror, memory);
+    try{
+        const snap = await ref.once('value');
+        const remote = normalizeLockout(snap.val() || {});
+        return strongestLockout(remote, mirror, local, memory);
+    }catch(e){ return strongestLockout(mirror, local, memory); }
+}
+async function registerPinFail(name){
+    const st = await getLockout(name);
+    let fails = (st.fails||0) + 1;
+    let lockUntil = st.lockUntil || 0;
+    let justLocked = false;
+    if(fails >= PIN_MAX_FAILS){
+        lockUntil = Date.now() + PIN_LOCKOUT_MS;
+        fails = 0;
+        justLocked = true;
+    }
+    await persistLockout(name, {fails, lockUntil, lastAttempt: Date.now()});
+    if(justLocked) onPinLockout(name);
+    return {fails, lockUntil, justLocked};
+}
+async function clearPinFail(name){
+    clearLocalLockout(name);
+    lockoutState[name] = {fails:0, lockUntil:0, lastAttempt: Date.now()};
+    const clean = {fails:0, lockUntil:0, lastAttempt: Date.now()};
+    const writes = [];
+    const ref = lockSecRef(name);
+    const mirror = lockFailMirrorRef(name);
+    if(ref) writes.push(ref.set(clean));
+    if(mirror) writes.push(mirror.set(clean));
+    await Promise.allSettled(writes);
+}
+async function onPinLockout(name){
+    const evt = {
+        player: name,
+        ts: Date.now(),
+        ua: (navigator.userAgent||'').slice(0,300),
+        page: location.href,
+        attempts: PIN_MAX_FAILS
+    };
+    try{ await db.ref('emptySecurityLog').push(evt); }catch(e){}
+    try{
+        await fetch(CF_PROXY + '/alert', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(evt),
+            signal: AbortSignal.timeout(8000)
+        });
+    }catch(e){ console.warn('告警 email 略過 (Worker /alert 尚未設定):', e.message); }
+}
+function showLockoutCountdown(name, lockUntil){
+    const input = document.getElementById('pinUnlock');
+    const msg   = document.getElementById('lockMsgUnlock');
+    const btn   = document.querySelector('#lockViewUnlock .btn-save');
+    if(lockoutTimer){ clearInterval(lockoutTimer); lockoutTimer=null; }
+    const tick = ()=>{
+        const left = Math.max(0, lockUntil - Date.now());
+        if(left <= 0){
+            clearInterval(lockoutTimer); lockoutTimer=null;
+            if(input){ input.disabled=false; input.classList.remove('err'); input.focus(); }
+            if(btn) btn.disabled=false;
+            if(msg){ msg.style.color='var(--text-secondary)'; msg.textContent='可重新輸入密碼'; }
+            return;
+        }
+        const m = Math.floor(left/60000), s = Math.floor((left%60000)/1000);
+        if(input){ input.disabled=true; input.value=''; }
+        if(btn) btn.disabled=true;
+        if(msg){ msg.style.color='var(--accent-red)';
+            msg.innerHTML = `因連續輸入錯誤，已鎖定 <span class="mono font-bold">${m}:${String(s).padStart(2,'0')}</span>　·　已通知管理員`; }
+    };
+    tick();
+    lockoutTimer = setInterval(tick, 1000);
+}
 // 鎖頭圖示(SVG)
 const LOCK_ICON_CLOSED = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`;
 const LOCK_ICON_OPEN   = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.7-1.6"/></svg>`;
@@ -5653,8 +6447,16 @@ function openLockModal(name, view){
     if(view!=='set' && !hasCardPwd(name)) view='set';
     lockSwitchView(view||'unlock');
     document.getElementById('lockModal').classList.add('open');
+    if((view||'unlock')==='unlock' && hasCardPwd(name)){
+        getLockout(name).then(st=>{ if(lockoutRemainMs(st)>0) showLockoutCountdown(name, st.lockUntil); });
+    }
 }
-function closeLockModal(){document.getElementById('lockModal').classList.remove('open');}
+function closeLockModal(){
+    if(lockoutTimer){ clearInterval(lockoutTimer); lockoutTimer=null; }
+    const inp=document.getElementById('pinUnlock'); if(inp){ inp.disabled=false; }
+    const btn=document.querySelector('#lockViewUnlock .btn-save'); if(btn){ btn.disabled=false; }
+    document.getElementById('lockModal').classList.remove('open');
+}
 function lockSwitchView(view){
     const isSet = view==='set';
     const isChange = view==='change';
@@ -5697,16 +6499,28 @@ async function submitUnlock(){
     const input = document.getElementById('pinUnlock');
     const msg = document.getElementById('lockMsgUnlock');
     const val = (input.value||'').trim();
+    const st0 = await getLockout(name);
+    if(lockoutRemainMs(st0) > 0){ showLockoutCountdown(name, st0.lockUntil); return; }
     if(!/^\d{4}$/.test(val)){ input.classList.add('err'); msg.textContent='請輸入 4 位數字密碼'; setTimeout(()=>input.classList.remove('err'),400); return; }
     if(await verifyPin(name, val)){
+        await clearPinFail(name);
         unlockedCards[name] = true;
         applyLockUI(name);
         closeLockModal();
         renderDashboard();   // 鎖定時內容未渲染進 DOM → 解鎖後重繪以填入
         setStatus('ok','已解鎖 '+name+' 的持倉與交易紀錄');
     } else {
-        input.classList.add('err'); input.value=''; msg.textContent='密碼錯誤，請重試';
-        setTimeout(()=>input.classList.remove('err'),400); input.focus();
+        const r = await registerPinFail(name);
+        input.classList.add('err'); input.value='';
+        setTimeout(()=>input.classList.remove('err'),400);
+        if(lockoutRemainMs(r) > 0){
+            showLockoutCountdown(name, r.lockUntil);
+        } else {
+            const left = PIN_MAX_FAILS - r.fails;
+            msg.style.color='var(--accent-red)';
+            msg.textContent = `密碼錯誤，還可嘗試 ${left} 次`;
+            input.focus();
+        }
     }
 }
 // 變更密碼(需通過現有密碼驗證)
@@ -5756,6 +6570,63 @@ async function submitRemoveLock(){
 }
 
 // ── 平倉 Modal ────────────────────────────
+function roundShareQty(n){
+    return Math.round((parseFloat(n)||0) * 1e8) / 1e8;
+}
+
+function collectSlotLots(slot){
+    const lots = [];
+    slot.querySelectorAll('.lot-row').forEach(row=>{
+        const shares = parseFloat(row.querySelector('.lot-shares').value) || 0;
+        const buyPrice = parseFloat(row.querySelector('.lot-buyprice').value) || 0;
+        const buyDate = (row.querySelector('.lot-buydate').value || '').trim();
+        if(shares > 0 && buyPrice > 0) lots.push({ shares, buyPrice, buyDate });
+    });
+    return lots;
+}
+
+function calcFifoClose(lots, closeShares){
+    const target = roundShareQty(closeShares);
+    let remainingToClose = target;
+    const consumed = [];
+    const remaining = [];
+    lots.forEach(lot=>{
+        const lotShares = roundShareQty(lot.shares);
+        if(lotShares <= 0) return;
+        if(remainingToClose > 1e-8){
+            const used = Math.min(lotShares, remainingToClose);
+            if(used > 1e-8) consumed.push({ ...lot, shares: roundShareQty(used) });
+            const left = roundShareQty(lotShares - used);
+            if(left > 1e-8) remaining.push({ ...lot, shares: left });
+            remainingToClose = roundShareQty(remainingToClose - used);
+        } else {
+            remaining.push({ ...lot, shares: lotShares });
+        }
+    });
+    const totalCost = consumed.reduce((sum,lot)=>sum + lot.shares * lot.buyPrice, 0);
+    const consumedShares = consumed.reduce((sum,lot)=>sum + lot.shares, 0);
+    const firstBuyDate = consumed.find(lot=>lot.buyDate)?.buyDate || '';
+    return {
+        consumed,
+        remaining,
+        totalCost,
+        consumedShares,
+        avgCost: consumedShares > 0 ? totalCost / consumedShares : 0,
+        firstBuyDate,
+        isComplete: remainingToClose <= 1e-8
+    };
+}
+
+function getCloseInputShares(){
+    return parseFloat(document.getElementById('closeSharesInput')?.value) || 0;
+}
+
+function updateCloseFifoPreview(avgCost, sCur, isValid){
+    const el = document.getElementById('closeFifoAvgPreview');
+    if(!el) return;
+    el.textContent = isValid && avgCost > 0 ? fmtRaw(avgCost, sCur, 4) : '--';
+}
+
 function openClosePositionModal(slotId){
     const slot = document.querySelector(`.stock-slot[data-slot-id="${slotId}"]`);
     if(!slot) return;
@@ -5768,10 +6639,10 @@ function openClosePositionModal(slotId){
 
     // 從 lots 計算總股數、平均成本、最早建倉日期
     let totalShares = 0, totalCost = 0, earliestDate = null;
-    slot.querySelectorAll('.lot-row').forEach(row=>{
-        const s = parseFloat(row.querySelector('.lot-shares').value) || 0;
-        const p = parseFloat(row.querySelector('.lot-buyprice').value) || 0;
-        const d = (row.querySelector('.lot-buydate').value || '').trim();
+    collectSlotLots(slot).forEach(lot=>{
+        const s = lot.shares;
+        const p = lot.buyPrice;
+        const d = lot.buyDate;
         if(s > 0 && p > 0){
             totalShares += s;
             totalCost += s * p;
@@ -5793,6 +6664,9 @@ function openClosePositionModal(slotId){
     document.getElementById('closeCostDisplay').textContent = fmtRaw(totalCost, sCur, sCur==='USD'?2:0);
     document.getElementById('closeAvgCostDisplay').textContent = avgCost.toFixed(4);
     document.getElementById('closeBuyDateDisplay').textContent = earliestDate || '--';
+    const closeSharesInput = document.getElementById('closeSharesInput');
+    closeSharesInput.value = totalShares;
+    closeSharesInput.max = totalShares;
 
     // 預設平倉日期為今日
     document.getElementById('closeDate').value = getTaipeiToday();
@@ -5818,6 +6692,7 @@ function openClosePositionModal(slotId){
     const pv = document.getElementById('closePnlPreview');
     pv.textContent = '--';
     pv.style.color = 'var(--text-muted)';
+    updateCloseFifoPreview(0, sCur, false);
 
     document.getElementById('closePositionModal').classList.add('open');
 }
@@ -5833,7 +6708,7 @@ function autoCalcCloseFee(){
     const pi = participants.findIndex(p=>p.name===playerName);
     if(pi === -1){ calcClosePreview(); return; }
     const ticker = document.getElementById('closeTickerDisplay').textContent || '';
-    const shares = parseFloat(document.getElementById('closeSharesDisplay').textContent.replace(/,/g,'')) || 0;
+    const shares = getCloseInputShares();
     const sellPrice = parseFloat(document.getElementById('closePrice').value) || 0;
     const isTW = isTaiwanStock(ticker);
     const profile = getPlayerFeeProfile(pi);
@@ -5853,8 +6728,11 @@ function autoCalcCloseFee(){
             }
         } else {
             if(profile.usRate > 0){
-                // 美股平倉: 買入手續費(以平均成本計) + 賣出手續費, 各收一次
-                const avgCost = parseFloat(document.getElementById('closeAvgCostDisplay').textContent) || 0;
+                // 美股平倉: 買入手續費(以 FIFO 本次成本計) + 賣出手續費, 各收一次
+                const slotId = document.getElementById('closeSlotId').value;
+                const slot = document.querySelector(`.stock-slot[data-slot-id="${slotId}"]`);
+                const fifo = slot ? calcFifoClose(collectSlotLots(slot), shares) : null;
+                const avgCost = fifo?.avgCost || 0;
                 const buyFee  = avgCost   > 0 ? avgCost   * shares * profile.usRate : 0;
                 const sellFee = sellPrice > 0 ? sellPrice * shares * profile.usRate : 0;
                 document.getElementById('closeUSFee').value = (buyFee + sellFee).toFixed(2);
@@ -5869,22 +6747,30 @@ function autoCalcCloseFee(){
 // 平倉 modal: 純算預估損益, 不修改 fee 欄位
 function calcClosePreview(){
     const ticker = document.getElementById('closeTickerDisplay').textContent || '';
-    const shares = parseFloat(document.getElementById('closeSharesDisplay').textContent.replace(/,/g,'')) || 0;
-    const avgCost = parseFloat(document.getElementById('closeAvgCostDisplay').textContent) || 0;
+    const shares = getCloseInputShares();
     const sellPrice = parseFloat(document.getElementById('closePrice').value) || 0;
     const isTW = isTaiwanStock(ticker);
     const sCur = getStockCurrency(ticker);
+    const totalShares = parseFloat(document.getElementById('closeSharesDisplay').textContent.replace(/,/g,'')) || 0;
+    const slotId = document.getElementById('closeSlotId').value;
+    const slot = document.querySelector(`.stock-slot[data-slot-id="${slotId}"]`);
+    const fifo = slot ? calcFifoClose(collectSlotLots(slot), shares) : null;
+    const validShares = shares > 0 && shares <= totalShares && fifo?.isComplete && fifo.consumedShares > 0;
 
     const fee = parseFloat(document.getElementById('closeFee').value) || 0;
     const tax = parseFloat(document.getElementById('closeTax').value) || 0;
     const usFee = parseFloat(document.getElementById('closeUSFee').value) || 0;
-    const totalCost = avgCost * shares;
+    const totalCost = validShares ? fifo.totalCost : 0;
     const totalRevenue = sellPrice * shares;
     const totalFee = isTW ? (fee + tax) : usFee;
     const pnl = totalRevenue - totalCost - totalFee;
 
     const pv = document.getElementById('closePnlPreview');
-    if(sellPrice > 0 && shares > 0){
+    updateCloseFifoPreview(fifo?.avgCost || 0, sCur, validShares);
+    if(shares > totalShares){
+        pv.textContent = '股數超過持股';
+        pv.style.color = 'var(--accent-red)';
+    } else if(sellPrice > 0 && validShares){
         const sign = pnl >= 0 ? '+' : '-';
         pv.textContent = `${sign}${fmtRaw(Math.abs(pnl), sCur, sCur==='USD'?2:0)}`;
         pv.style.color = pnl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
@@ -5907,13 +6793,17 @@ function executeClosePosition(){
     if(!slot){ alert('找不到對應持股'); return; }
 
     const ticker = document.getElementById('closeTickerDisplay').textContent || '';
-    const shares = parseFloat(document.getElementById('closeSharesDisplay').textContent.replace(/,/g,'')) || 0;
-    const avgCost = parseFloat(document.getElementById('closeAvgCostDisplay').textContent) || 0;
-    const buyDate = document.getElementById('closeBuyDateDisplay').textContent || '';
+    const shares = getCloseInputShares();
+    const totalShares = parseFloat(document.getElementById('closeSharesDisplay').textContent.replace(/,/g,'')) || 0;
+    const fifo = calcFifoClose(collectSlotLots(slot), shares);
+    const avgCost = fifo.avgCost || 0;
+    const buyDate = fifo.firstBuyDate || '';
     const sellPrice = parseFloat(document.getElementById('closePrice').value) || 0;
     const closeDate = document.getElementById('closeDate').value;
     const isTW = isTaiwanStock(ticker);
 
+    if(!(shares > 0)){ alert('請輸入本次平倉股數'); return; }
+    if(shares > totalShares || !fifo.isComplete){ alert('平倉股數不可超過目前持股'); return; }
     if(!(sellPrice > 0)){ alert('請輸入平倉價格'); return; }
     if(!closeDate){ alert('請選擇平倉日期'); return; }
 
@@ -5933,12 +6823,21 @@ function executeClosePosition(){
     // 從 participants 中查找股票名稱
     const matchedStock = (participants[pi].stocks||[]).find(s => (s.ticker||'').toUpperCase().trim() === ticker.toUpperCase().trim());
     const stockName = matchedStock?.stockName || '';
-    const pnl = (sellPrice - avgCost) * shares - fee - tax;
+    const pnl = sellPrice * shares - fifo.totalCost - fee - tax;
     const dateVal = closeDate.replace(/-/g,'/').replace(/\/0/g,'/'); // YYYY-MM-DD → YYYY/M/D
 
-    // 從 DOM 移除該 slot (使用者按下「同步至雲端」時 saveData 會自動排除已刪除的)
-    slot.remove();
-    renumberSlots();
+    // 從 DOM 更新該 slot: 全部平倉才移除, 部分平倉則保留 FIFO 後剩下的 lot
+    if(fifo.remaining.length === 0){
+        slot.remove();
+        renumberSlots();
+    } else {
+        const lotsContainer = slot.querySelector('.lots-container');
+        if(lotsContainer){
+            lotsContainer.innerHTML = '';
+            fifo.remaining.forEach(lot => addLotRow(slotId, lot));
+            updateLotSummary(slotId);
+        }
+    }
 
     // 構建 trade 紀錄
     const newTrade = {
@@ -5957,8 +6856,13 @@ function executeClosePosition(){
         pnl: parseFloat(pnl.toFixed(2)),
         date: dateVal,
         closedFromStock: true,
-        firstBuyDate: buyDate
+        closedLots: fifo.consumed.map(lot=>{
+            const out = { shares: lot.shares, buyPrice: lot.buyPrice };
+            if(lot.buyDate) out.buyDate = lot.buyDate;
+            return out;
+        })
     };
+    if(buyDate) newTrade.firstBuyDate = buyDate;
 
     // 立刻同步: 更新 stocks(來自當前 DOM) + trades(加上新平倉)
     const newStocks = [];
@@ -5982,15 +6886,19 @@ function executeClosePosition(){
             }
         });
         if(lots.length === 0 || tShares <= 0) return;
+        const pieColor = normalizeHoldingPieColor(s.dataset.pieColor, newStocks.length);
         const obj = {
             ticker: t,
             shares: tShares,
             buyPrice: tCost / tShares,
             currentPrice: cp,
             currency: getStockCurrency(t),
-            lots
+            lots,
+            pieColor
         };
         if(earliest) obj.buyDate = earliest;
+        const displayStockName = formatStockDisplayName(t, s.dataset.stockName);
+        if(displayStockName) obj.stockName = displayStockName;
         newStocks.push(obj);
     });
 
@@ -6092,22 +7000,20 @@ function openColorPicker(type, key, currentColor){
         if(/^#[0-9a-f]{6}$/i.test(v) && ci) ci.value = v.toLowerCase();
     };
 
-    // 快速色票網格
+    // 玩家/指數各自獨立的 20 格顏色記憶槽
     const grid = document.getElementById('colorPickerGrid');
-    grid.innerHTML = COLOR_PALETTE.map(c => {
-        const isCurrent = c.toLowerCase() === (currentColor||'').toLowerCase();
-        return `<button onclick="pickColor('${c}')" title="${c}"
-            style="width:100%;aspect-ratio:1;border-radius:50%;background:${c};
-                   border:${isCurrent?'3px solid #fff':'1.5px solid rgba(255,255,255,.15)'};
-                   cursor:pointer;padding:0;transition:transform .12s;
-                   ${isCurrent?'box-shadow:0 0 0 2px '+c+',0 0 12px '+c+'aa;':''}"
-            onmouseover="this.style.transform='scale(1.18)'" onmouseout="this.style.transform='scale(1)'"></button>`;
+    const slots = getColorMemorySlots(type, key);
+    grid.innerHTML = slots.map((c, i) => {
+        const isCurrent = c && c.toLowerCase() === (currentColor||'').toLowerCase();
+        const slotTitle = c ? `套用 ${c}` : '記住目前顏色';
+        return `<button onclick="pickMemoryColorSlot(${i})" title="${slotTitle}"
+            class="color-swatch ${c?'filled':'empty'} ${isCurrent?'current':''}"
+            ${c ? `style="background:${c};color:${c};"` : ''}></button>`;
     }).join('');
     document.getElementById('colorPickerModal').classList.add('open');
 }
 
-// 套用自訂 hex 色
-function applyCustomColor(){
+function getCustomColorValue(){
     const ch = document.getElementById('customColorHex');
     const ci = document.getElementById('customColorInput');
     let c = (ch?.value || ci?.value || '').trim().toLowerCase();
@@ -6115,8 +7021,15 @@ function applyCustomColor(){
     if(!/^#[0-9a-f]{6}$/i.test(c)){
         alert('請輸入有效的 hex 色碼,例如 #a855f7');
         ch?.focus();
-        return;
+        return '';
     }
+    return c;
+}
+
+// 套用自訂 hex 色
+function applyCustomColor(){
+    const c = getCustomColorValue();
+    if(!c) return;
     pickColor(c);
 }
 
@@ -6143,6 +7056,21 @@ function pickColor(color){
         .catch(e=>{ console.warn('Color save fail:', e); alert('儲存失敗,請再試一次'); });
 }
 
+function pickMemoryColorSlot(index){
+    const type = document.getElementById('colorPickerType').value;
+    const key = document.getElementById('colorPickerKey').value;
+    if(!type || !key) return;
+    const slots = getColorMemorySlots(type, key);
+    let color = slots[index];
+    if(!color){
+        color = getCustomColorValue();
+        if(!color) return;
+        slots[index] = color;
+        saveColorMemorySlots(type, key, slots);
+    }
+    pickColor(color);
+}
+
 function resetColorChoice(){
     const type = document.getElementById('colorPickerType').value;
     const key = document.getElementById('colorPickerKey').value;
@@ -6165,6 +7093,7 @@ function addStockSlot(data={}){
     const num=container.querySelectorAll('.stock-slot').length+1;
     // 是否為從既有資料載入(才能平倉) — 只有 data 有 ticker 或 lots 才視為既有
     const isExisting = !!(data && (data.ticker || (Array.isArray(data.lots) && data.lots.length>0)));
+    const slotPieColor = data.pieColor ? normalizeHoldingPieColor(data.pieColor, num-1) : (isExisting ? getHoldingPieColor(num-1) : randomHoldingPieColor());
     // 取出 lots: 優先用 data.lots, 沒有則用舊欄位合成一筆
     let lots = Array.isArray(data.lots) && data.lots.length>0 ? data.lots : null;
     if(!lots){
@@ -6180,12 +7109,14 @@ function addStockSlot(data={}){
     }
     const slot=document.createElement('div');slot.className='stock-slot';slot.dataset.slotId=id;
     slot.dataset.existing = isExisting ? '1' : '0';
+    slot.dataset.stockName = formatStockDisplayName(data.ticker||'', data.stockName||'');
+    slot.dataset.pieColor = slotPieColor;
     const closeBtnHTML = isExisting
         ? `<button type="button" onclick="openClosePositionModal(${id})" 
               style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.35);color:#fca5a5;padding:4px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;margin-right:6px;transition:all .2s;"
               onmouseover="this.style.background='rgba(239,68,68,.2)';this.style.borderColor='#ef4444';"
               onmouseout="this.style.background='rgba(239,68,68,.1)';this.style.borderColor='rgba(239,68,68,.35)';"
-              title="一鍵賣出全部持股">平倉</button>`
+              title="可選擇本次平倉股數">平倉</button>`
         : '';
     slot.innerHTML=`<div class="stock-slot-header">
             <span class="slot-num">持股 #${num}</span>
@@ -6307,7 +7238,10 @@ async function onSlotInput(id,val){
     slotAcTimers[id]=setTimeout(async()=>{
         const results=await searchTickers(val);slotAcItems[id]=results;slotAcIdx[id]=-1;
         if(!results.length){list.innerHTML='<div class="ac-spinner">找不到相關股票</div>';return;}
-        list.innerHTML=results.map((q,i)=>`<div class="ac-item" onclick="selectSlot(${id},${i})"><div style="display:flex;align-items:center;gap:8px;"><span class="ac-ticker">${q.symbol}</span><span class="ac-name">${q.shortname||''}</span></div><span class="ac-exch">${q.exchDisp||''}</span></div>`).join('');
+        list.innerHTML=results.map((q,i)=>{
+            const displayName = formatStockDisplayName(q.symbol, q.shortname);
+            return `<div class="ac-item" onclick="selectSlot(${id},${i})"><div style="display:flex;align-items:center;gap:8px;"><span class="ac-ticker">${esc(q.symbol)}</span><span class="ac-name">${esc(displayName||q.shortname||'')}</span></div><span class="ac-exch">${esc(q.exchDisp||'')}</span></div>`;
+        }).join('');
     },350);
 }
 function onSlotKey(e,id){
@@ -6333,6 +7267,7 @@ async function selectSlot(id,idx){
     const price=await fetchStockPrice(q.symbol);
     if(priceHidden) priceHidden.value = price!=null ? (price.price||price) : 0;
     if(priceSpan) priceSpan.textContent = price!=null ? (price.price||price).toFixed(2) : '取得失敗';
+    slot.dataset.stockName = formatStockDisplayName(q.symbol, price?.name, q.shortname);
     
     updateModalSummary();
 }
@@ -6424,15 +7359,19 @@ function saveData(){
         const avgPrice = totalCost / totalShares;
         // 永遠以 ticker 為準, 強制覆蓋 currency
         const forcedCur = getStockCurrency(ticker);
+        const pieColor = normalizeHoldingPieColor(slot.dataset.pieColor, newStocks.length);
         const obj = {
             ticker,
             shares: totalShares,
             buyPrice: avgPrice,
             currentPrice,
             currency: forcedCur,
-            lots
+            lots,
+            pieColor
         };
         if(earliestDate) obj.buyDate = earliestDate;
+        const displayStockName = formatStockDisplayName(ticker, slot.dataset.stockName);
+        if(displayStockName) obj.stockName = displayStockName;
         newStocks.push(obj);
     });
     const updated={...participants[pi],currency:document.getElementById('editCurrency').value,cash:parseFloat(document.getElementById('editCash').value)||0,stocks:newStocks,deposits:newDeposits};
@@ -6453,7 +7392,10 @@ async function onTradeTickerInput(val){
     tradeAcTimer=setTimeout(async()=>{
         const results=await searchTickers(val);tradeAcItems=results;tradeAcIdx=-1;
         if(!results.length){list.innerHTML='<div class="ac-spinner">找不到相關股票</div>';return;}
-        list.innerHTML=results.map((q,i)=>`<div class="ac-item" onclick="selectTradeTicker(${i})"><div style="display:flex;align-items:center;gap:8px;"><span class="ac-ticker">${q.symbol}</span><span class="ac-name">${q.shortname||''}</span></div><span class="ac-exch">${q.exchDisp||''}</span></div>`).join('');
+        list.innerHTML=results.map((q,i)=>{
+            const displayName = formatStockDisplayName(q.symbol, q.shortname);
+            return `<div class="ac-item" onclick="selectTradeTicker(${i})"><div style="display:flex;align-items:center;gap:8px;"><span class="ac-ticker">${esc(q.symbol)}</span><span class="ac-name">${esc(displayName||q.shortname||'')}</span></div><span class="ac-exch">${esc(q.exchDisp||'')}</span></div>`;
+        }).join('');
     },350);
 }
 
@@ -6495,19 +7437,21 @@ async function fetchAndSetTradeName(symbol, fallbackName=''){
     nameDiv.textContent='名稱載入中...';
     try{
         const res=await fetchStockPrice(symbol);
-        if(res&&res.name){
-            nameDiv.textContent=res.name;
-            input.dataset.name=res.name;
+        const displayName = formatStockDisplayName(symbol, res?.name, fallbackName);
+        if(displayName){
+            nameDiv.textContent=displayName;
+            input.dataset.name=displayName;
         }else if(fallbackName && !fallbackName.includes('台股')){
-            nameDiv.textContent=fallbackName;
-            input.dataset.name=fallbackName;
+            const cleanFallback = formatStockDisplayName(symbol, fallbackName);
+            nameDiv.textContent=cleanFallback;
+            input.dataset.name=cleanFallback;
         }else{
             nameDiv.textContent='';
             input.dataset.name='';
         }
     }catch(e){
         nameDiv.textContent='';
-        input.dataset.name=fallbackName||'';
+        input.dataset.name=formatStockDisplayName(symbol, fallbackName)||'';
     }
 }
 
@@ -6769,7 +7713,7 @@ async function saveTrade(){
 
     if(!ticker||shares<=0){alert('請填入股票代號和股數');return;}
     
-    const stockName = document.getElementById('tradeTicker').dataset.name || '';
+    const stockName = formatStockDisplayName(ticker, document.getElementById('tradeTicker').dataset.name || '');
     const newTrade = { ticker, stockName, shares, buyPrice, sellPrice, discount, fee, tax, usFee, buyFee, sellFee, interest, pnl, date: dateVal };
     if(buyDateVal) newTrade.firstBuyDate = buyDateVal;   // 有填才寫入, 與既有平倉紀錄欄位一致
     const tList = [...(participants[pi].trades||[])];
@@ -7254,6 +8198,7 @@ function renderAdvancedPanel(allDates, lastTradingDayStr){
     });
     advData = { allDates, lastTradingDayStr, players };
     checkNavHighs();
+    refreshOpenPerfPanes();
     ensureAdvSwipe();
     renderAdvPage(false);
 }
@@ -7304,7 +8249,7 @@ function renderAdvPage(switched){
     const titleEl = document.getElementById('adv-page-title');
     const subEl = document.getElementById('adv-page-sub');
     if(iconEl) iconEl.textContent = pg.icon;
-    if(titleEl) titleEl.textContent = pg.title;
+    if(titleEl) titleEl.textContent = (pg.id==='chart' && whatIfMode) ? 'What-if · 續抱至今' : pg.title;
     if(subEl) subEl.textContent = pg.sub;
     const dotsEl = document.getElementById('adv-dots');
     if(dotsEl) dotsEl.innerHTML = ADV_PAGES.map((p,i)=>
@@ -7729,6 +8674,29 @@ const crosshairPlugin = {
     }
 };
 
+const whatIfGlowLinePlugin = {
+    id: 'whatIfGlowLine',
+    beforeDatasetDraw(chart, args){
+        const ds = chart.data.datasets[args.index];
+        if(!ds || (!ds.whatIfGlow && !ds.glowLine)) return;
+        const meta = chart.getDatasetMeta(args.index);
+        if(!meta || !meta.dataset) return;
+        const c = chart.ctx;
+        c.save();
+        c.shadowColor = ds.borderColor || '#ffffff';
+        c.shadowBlur = chart.width < 520 ? 6 : 9;
+        c.globalAlpha = ds.whatIfGlow ? 0.76 : 0.5;
+        meta.dataset.draw(c);
+        c.restore();
+    }
+};
+let whatIfGlowLinePluginRegistered = false;
+function ensureWhatIfGlowLinePlugin(){
+    if(whatIfGlowLinePluginRegistered || typeof Chart === 'undefined') return;
+    Chart.register(whatIfGlowLinePlugin);
+    whatIfGlowLinePluginRegistered = true;
+}
+
 // Sticky 迷你排行條
 let miniBarObserverInit = false;
 function ensureMiniBarObserver(){
@@ -8120,12 +9088,12 @@ function computeLiveStats(p, pIdx){
                      (sess==='盤後'&&s.postPrice)?s.postPrice:
                      s.currentPrice||0;
             const sCur=getStockCurrency(s.ticker)||s.currency||p.currency;
-            return { ticker:s.ticker||'--', mv: Math.max(0, convertCurrency((s.shares||0)*lp, sCur, p.currency)) };
+            return { ticker:s.ticker||'--', mv: Math.max(0, convertCurrency((s.shares||0)*lp, sCur, p.currency)), color: s.pieColor };
         }).filter(x=>x.mv>0).sort((a,b)=>b.mv-a.mv);
         pieSlices = [...stockSlices];
         const cashMV = Math.max(0, autoCash);
         if(cashMV > 0) pieSlices.push({ticker:'現金', mv:cashMV, isCash:true});
-        pieSlices.forEach((s,i)=>{ s.color = s.isCash ? '#475569' : HOLDING_PIE_COLORS[i % HOLDING_PIE_COLORS.length]; });
+        pieSlices.forEach((s,i)=>{ s.color = s.isCash ? '#475569' : normalizeHoldingPieColor(s.color || s.pieColor, i); });
     }
     return {
         pIdx, name:p.name, cur:p.currency, netVal, valTWD, valUSD,
@@ -8277,6 +9245,11 @@ function renderCmPage(){
     const marketPg = document.getElementById('cm-page-market');
     if(chartPg)  chartPg.style.display  = (pg.id==='chart')  ? '' : 'none';
     if(marketPg) marketPg.style.display = (pg.id==='market') ? '' : 'none';
+    const wiBtn = document.getElementById('whatif-toggle-btn');
+    const wiHint = document.getElementById('whatif-hint');
+    if(wiBtn) wiBtn.style.display = (pg.id==='chart') ? 'inline-flex' : 'none';
+    if(pg.id!=='chart' && wiHint) wiHint.classList.remove('show');
+    if(pg.id==='chart' && whatIfMode && wiHint) wiHint.classList.add('show');
     const shown = (pg.id==='chart') ? chartPg : marketPg;
     if(shown){ shown.classList.remove('adv-fade'); void shown.offsetWidth; shown.classList.add('adv-fade'); }
     // 隱藏期間 canvas 尺寸為 0 → 切回時補 resize
@@ -8379,7 +9352,7 @@ async function refreshPrices(){
             participants[pi].stocks[si].postPrice    = result.postPrice||null;
             participants[pi].stocks[si].prePrice     = result.prePrice||null;
             participants[pi].stocks[si].session      = result.session||'';
-            if(result.name) participants[pi].stocks[si].stockName=result.name;
+            if(result.name) participants[pi].stocks[si].stockName=formatStockDisplayName(job.ticker, result.name, participants[pi].stocks[si].stockName);
             anyUpdate = true;
         }
     });
