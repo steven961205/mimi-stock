@@ -2926,8 +2926,8 @@ async function fetchRecentUSRegularCloses(ticker){
 
 async function fetchStockHistoryUS(ticker){
     const CF='https://yf-proxy.steven961205.workers.dev';
-    // 多抓 30 天 buffer,方便建倉日早於賽程起點時也有資料
-    const startTs = Math.floor((new Date(BENCHMARK_START_DATE+'T00:00:00').getTime() - 30*86400000)/1000);
+    // 多抓 30 天 buffer; 起點改用最早入金日, 確保入金日早於大盤起始日時仍有股價可估值
+    const startTs = Math.floor((new Date(getChartStartDate()+'T00:00:00').getTime() - 30*86400000)/1000);
     const endTs = Math.floor(Date.now()/1000);
     const yfUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?period1=${startTs}&period2=${endTs}&interval=1d&includePrePost=false`;
     try {
@@ -2969,7 +2969,7 @@ async function fetchStockHistoryTW(ticker){
     // 注意: 必須先剝 .TWO 再剝 .TW — 反過來 '6488.TWO' 會被切成 '6488O' (上櫃股票全滅)
     const code = ticker.replace('.TWO','').replace('.TW','');
     const todayD = new Date();
-    const startD = new Date(new Date(BENCHMARK_START_DATE+'T00:00:00').getTime() - 30*86400000);
+    const startD = new Date(new Date(getChartStartDate()+'T00:00:00').getTime() - 30*86400000);
     const dateStr = todayD.toISOString().slice(0,10);
     const startStr = startD.toISOString().slice(0,10);
     try {
@@ -3074,6 +3074,20 @@ function getAllTradingDates(){
         dates.push(`${y}-${m}-${dd}`);
     }
     return dates;
+}
+
+// ── 績效曲線起始日 = 所有玩家最早一筆入金日 ────────────────
+// 依「當下的本金紀錄」動態定錨: 取所有玩家 deposits 裡最早的日期;
+// 並與大盤對照起始日取較早者, 確保大盤線仍完整顯示。沒有任何入金時退回 BENCHMARK_START_DATE。
+function getChartStartDate(){
+    let earliest = null;
+    (typeof participants !== 'undefined' ? participants : []).forEach(p => {
+        getDeposits(p).forEach(d => {
+            if(d.date && (!earliest || d.date < earliest)) earliest = d.date;
+        });
+    });
+    if(!earliest) return BENCHMARK_START_DATE;
+    return earliest < BENCHMARK_START_DATE ? earliest : BENCHMARK_START_DATE;
 }
 
 // ── 計算玩家在指定日期的淨值 (記帳幣別) ──────
@@ -3199,7 +3213,7 @@ function renderPerformanceChart(){
 
     // 1. 建立工作日序列(跳過週末) — 每平日一個 X 軸點
     const allDates = [];
-    const startDate = new Date(BENCHMARK_START_DATE+'T00:00:00');
+    const startDate = new Date(getChartStartDate()+'T00:00:00');   // 起始日 = 最早入金日 (依當下本金紀錄動態定錨)
     const todayStr = getTaipeiToday();
     const todayDate = new Date(todayStr+'T00:00:00');
     for(let d=new Date(startDate); d<=todayDate; d.setDate(d.getDate()+1)){
@@ -3583,7 +3597,7 @@ function renderWhatIfChart(){
 
     // 1. 工作日序列 (與正常曲線完全一致)
     const allDates=[];
-    const startDate=new Date(BENCHMARK_START_DATE+'T00:00:00');
+    const startDate=new Date(getChartStartDate()+'T00:00:00');   // 與正常曲線一致: 起始日 = 最早入金日
     const todayStr=getTaipeiToday();
     const todayDate=new Date(todayStr+'T00:00:00');
     for(let d=new Date(startDate); d<=todayDate; d.setDate(d.getDate()+1)){
